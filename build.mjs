@@ -20,7 +20,6 @@ const connectorAssets = [
   ["duckdb", "DuckDB"],
 ];
 const icons = {
-  brand: '<path d="m4 19 10-14 7 12M4 19l17-2"/><circle cx="4" cy="19" r="3"/><circle cx="14" cy="5" r="3"/><circle cx="21" cy="17" r="3"/>',
   sources: '<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 4 16 4 16 0V5M4 12c0 4 16 4 16 0"/>',
   model: '<path d="m4 19 8-14 8 14H4"/><circle cx="4" cy="19" r="3"/><circle cx="12" cy="5" r="3"/><circle cx="20" cy="19" r="3"/>',
   query: '<path d="m8 6-6 6 6 6m8-12 6 6-6 6m-2-15-4 18"/>',
@@ -139,7 +138,7 @@ function renderPage(locale, slug) {
 <meta name="description" content="${escape(description)}">
 <link rel="alternate" hreflang="en" href="${pageURL(current, "en", slug)}">
 <link rel="alternate" hreflang="zh-CN" href="${pageURL(current, "zh-CN", slug)}">
-<link rel="icon" href="${assets}mark.svg" type="image/svg+xml">
+<link rel="icon" href="${assets}graphlake-logo.png" type="image/png" sizes="512x512">
 <link rel="stylesheet" href="${assets}site.css">
 <script src="${assets}site.js" defer></script>
 </head>
@@ -147,7 +146,7 @@ function renderPage(locale, slug) {
 <a href="#main" class="skip">${ui.skip}</a>
 <header class="site-header">
   <div class="shell topbar">
-    <a class="brand" href="${href("")}">${svg("brand")}<span>GraphLake</span></a>
+    <a class="brand" href="${href("")}"><img src="${assets}graphlake-logo.png" width="44" height="44" alt=""><span>GraphLake</span></a>
     <nav aria-label="${ui.primary}">
       <a href="${href("quickstart")}"${slug === "quickstart" ? ' aria-current="page"' : article && slug !== "use-cases" ? ' class="selected"' : ""}>${ui.docs}</a>
       <a href="${href("use-cases")}"${slug === "use-cases" ? ' aria-current="page"' : ""}>${articles["use-cases"].title}</a>

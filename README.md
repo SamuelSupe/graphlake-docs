@@ -35,3 +35,4 @@ npx --yes wrangler@4.163.0 pages deploy dist --project-name graphlake-docs --bra
 - Keep commands and version-specific download URLs in `examples.mjs`. Check them against the release artifacts before updating the documented version.
 - `assets/` holds the site's styles, client script, and public product screenshots. The workbench and local-table screenshots show the English GraphLake v1.1.1 console with the Parquet example. The connector artwork and its license come from `web/src/assets/connectors/`.
 - The home page uses `assets/graph-background.webp` for the decorative artwork and serves Geist and Geist Mono locally. Their license is in `assets/LICENSE-geist.txt`.
+- `assets/graphlake-logo.png` is the [official GraphLake mark](https://github.com/SamuelSupe/graphlake/blob/6857b723de2f7cdad5955a8ddb0afc5719e494d3/docs/images/graphlake-logo.png). The header and favicon use this same image.

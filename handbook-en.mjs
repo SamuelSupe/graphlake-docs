@@ -19,6 +19,7 @@ export default {
 <ul class="task-list">
   <li><strong>${link("concepts", "Understand the graph model")}</strong> Learn how sources, keys, edges, and published revisions fit together.</li>
   <li><strong>${link("sources", "Connect your data")}</strong> Choose a connector, check fields, and decide whether to query directly or load a local copy.</li>
+  <li><strong>${link("local-tables", "Sync a local copy")}</strong> Configure full or incremental refresh and check the load history.</li>
   <li><strong>${link("model", "Model a graph in the console")}</strong> Follow the canvas walkthrough to map business keys and endpoints, then publish.</li>
   <li><strong>${link("query", "Use the query and graph workspace")}</strong> Set Cypher parameters, switch result views, and expand a node’s neighbors.</li>
   <li><strong>${link("query-recipes", "Run query recipes")}</strong> Follow paths in Cypher, summarize rows in SQL, and traverse in Gremlin.</li>

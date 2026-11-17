@@ -4,7 +4,7 @@ import {
 } from "./examples.mjs";
 import operations from "./operations-zh.mjs";
 import handbook from "./handbook-zh.mjs";
-import { directTransfers, postgresSource, workbenchPath } from "./handbook-examples.mjs";
+import { directTransfers, postgresSource, syncDemoSetup, syncDemoUpdate, workbenchPath } from "./handbook-examples.mjs";
 
 const workbenchAlt = "GraphLake 查询工作台，展示 Parquet 示例中的三个账户及其转账关系";
 
@@ -94,13 +94,26 @@ ${code("Cypher", graphQuery)}
   <dt>文件与对象存储</dt><dd>CSV、JSON Lines 和 Parquet。可配置 S3、MinIO、OSS、TOS、COS、Azure Blob Storage 或 GCS，浏览对象并映射文件。</dd>
 </dl>
 <p>Oracle 直连需要在服务端安装 Oracle Instant Client。也可以通过已配置的 Trino catalog 访问 SQL Server、Oracle、Hive、Hudi、MongoDB、Elasticsearch 和 Redshift。配置细节与支持的类型见${ref("docs/reference.zh-CN.md#图映射与连接器", "连接器参考")}。</p>`],
-        ["configure", "在工作台添加数据源", () => `
+        ["configure", "在工作台添加数据源", ({ image }) => `
+<p>使用管理员账号登录。要跟着截图操作，先<a href="#sqlite-demo">准备 SQLite 样例</a>，再添加连接。</p>
 <ol>
-  <li>在模型草稿中打开<strong>数据源</strong>（Data Sources），选择连接器。</li>
-  <li>填写连接设置，或将文件路径映射到表名。凭据填写 GraphLake 服务端已配置的环境变量名。</li>
-  <li>选择<strong>添加到草稿</strong>（Add to draft）并保存。浏览表与字段，确认模型需要的列。</li>
+  <li>在控制台打开<strong>数据源</strong>（Data Sources），选中要配置的模型。点击<strong>添加数据源</strong>，搜索连接器，再点其卡片上的<strong>配置</strong>。模型尚未保存时，从建模指引中的<strong>添加数据源</strong>进入。</li>
+  <li>填写模型内唯一且不含点号的数据源名称，再填写连接设置或将文件路径映射到表名。使用 SQLite 样例时，数据源名称填 <code>ledger</code>，<strong>数据库文件路径</strong>填 <code>ledger.db</code>。</li>
+  <li>点击<strong>添加到草稿</strong>（Add to draft），再点击<strong>保存草稿</strong>。添加后若打开了配置面板，也可在面板内保存。要编辑已有连接，在数据源卡片点击<strong>配置</strong>。</li>
 </ol>
-<p>为 GraphLake 分配目标表或视图的只读凭据。文件路径以服务端为准。CSV 和 JSON Lines 需显式声明列类型，Parquet 可读取文件本身的结构。</p>`],
+<p>为 GraphLake 分配只读凭据，凭据字段填写服务端已配置的环境变量名。文件路径由 GraphLake 服务端解析。CSV 和 JSON Lines 需显式声明列类型，Parquet 文件自带结构。</p>
+<figure>${image("source-add", "英文 SQLite 连接配置显示 ledger、ledger.db 和 Add to draft 按钮")}<figcaption>连接器配置完成后，点击 <strong>Add to draft</strong> 添加到模型草稿。</figcaption></figure>`],
+        ["sqlite-demo", "准备 SQLite 样例", ({ code }) => `
+<p>在 GraphLake 主机上，将 <code>catalog_dir</code> 设为练习环境启动时 <code>--catalog-dir</code> 指定的目录，并确认目录中还没有 <code>ledger.db</code>。安装 <code>sqlite3</code> 后执行下方命令，确保 GraphLake 服务账号有文件读取权限。</p>
+${code("Shell", syncDemoSetup)}
+<p>样例用 <code>id</code> 区分记录，用 <code>updated_seq</code> 跟踪变更。将 SQLite 数据源添加为 <code>ledger</code> 后，在同步教程中选择 <code>ledger.accounts</code>。</p>`],
+        ["browse", "浏览表和字段", ({ image }) => `
+<ol>
+  <li>在数据源卡片上点击<strong>浏览表与字段</strong>（Browse tables and columns）。若连接器显示模式或命名空间选择器，先选择相应的范围，例如 PostgreSQL 的 <code>public</code>。</li>
+  <li>选择<strong>来源表</strong>，在预览中核对<strong>字段</strong>、<strong>类型</strong>和<strong>可为空</strong>。本例中 <code>id</code> 和 <code>updated_seq</code> 都是不可为空的 <code>Int64</code> 字段。</li>
+  <li>列表里找不到已知表时，展开<strong>手动查找</strong>，按连接器的命名格式填入<strong>完整表名</strong>，点击<strong>读取字段</strong>。从节点映射、边映射或本地表表单打开浏览器时，可以点击<strong>使用此表</strong>带回所选表。</li>
+</ol>
+<figure>${image("source-browser", "英文来源表浏览器显示 ledger.accounts 及其三个字段的类型和可空性")}<figcaption>建模或同步前，先核对业务键、端点和水位字段。</figcaption></figure>`],
         ["postgres", "接入 PostgreSQL", ({ code, link }) => `
 <ol>
   <li>创建能连接数据库、读取目标表或视图的专用账号。先确认 GraphLake 主机可以访问数据库。</li>
@@ -203,22 +216,36 @@ ${code("JSON", '{"account_id":1}')}
     },
     "local-tables": {
       title: "本地表与同步",
-      description: "将选定列加载为受管理的 Parquet 副本，让可接受定时更新的查询读取本地表。",
+      description: "为外部表创建 Parquet 副本，在控制台配置全量或增量刷新，并跟踪同步任务。",
       sections: [
-        ["load", "加载副本并发布映射", ({ image }) => `
+        ["load", "创建并加载本地表", ({ link }) => `
 <ol>
-  <li>管理员先在模型草稿中保存外部来源，再打开<strong>本地表</strong>（Local Tables）。</li>
-  <li>选择源表和模型所需字段，包含主键与边端点，然后创建并加载。</li>
-  <li>任务成功后将副本加入模型数据源。把映射指向 <code>local_&lt;名称&gt;.data</code>，校验草稿并发布。</li>
-</ol>
-<figure>${image("local-tables", "本地表面板展示转账表加载成功和下一次定时刷新")}<figcaption>切换模型映射前，确认副本就绪并检查加载历史。</figcaption></figure>`],
-        ["refresh", "选择刷新方式", () => `
+  <li>使用管理员账号${link("sources", "添加外部数据源并保存模型草稿")}。从<strong>数据源 → 本地表与同步</strong>或<strong>图模型 → 本地表</strong>进入管理页。</li>
+  <li>点击<strong>创建本地表</strong>并填写名称。在<strong>外部源表</strong>中浏览来源，选中表，再点击<strong>使用此表</strong>。</li>
+  <li>在<strong>加载字段与主键</strong>中保留模型所需的业务键、边端点和属性。跟练 SQLite 样例时，本地表名填 <code>accounts_local</code>，选择 <code>ledger.accounts</code>，保留 <code>id</code>、<code>name</code> 和 <code>updated_seq</code>。</li>
+  <li>按下一节设置更新方式。保留<strong>创建后立即加载</strong>的勾选，再点击<strong>创建本地表</strong>，首次加载会在后台执行。也可以稍后在表卡片上点击<strong>加载副本</strong>。</li>
+</ol>`],
+        ["refresh", "配置全量或增量刷新", ({ image }) => `
 <dl class="plain-list">
-  <dt>全量刷新</dt><dd>重新读取选定字段并发布新快照，可反映源表物理删除和主键变更。</dd>
-  <dt>增量刷新</dt><dd>配置稳定、唯一、非空的主键，选择整数、日期或时间戳作为水位字段。每次插入或更新都要推进水位。GraphLake 重读水位边界并按主键覆盖。</dd>
-  <dt>定时刷新</dt><dd>全量和增量都可以定时执行，可查看最近一次成功刷新和下次运行时间。首次加载为全量。</dd>
+  <dt>全量替换（Full replacement）</dt><dd>在<strong>更新方式</strong>中选择<strong>全量替换</strong>。每次读取源表中所选字段的全部记录，成功后替换副本，可反映物理删除和主键变更。</dd>
+  <dt>增量更新（Incremental refresh）</dt><dd>创建本地表时，在要用作键的字段右侧勾选<strong>主键</strong>，选择<strong>增量更新</strong>，再将<strong>增量字段</strong>设为非空的整数、日期或时间戳字段。样例用 <code>id</code> 作主键，用 <code>updated_seq</code> 作水位。</dd>
+  <dt>定时刷新（Scheduled refresh）</dt><dd>在<strong>运行计划</strong>中勾选<strong>启用定时刷新</strong>，填写刷新间隔，单位为秒，至少 <code>30</code> 秒。例如填 <code>3600</code> 每小时刷新一次。增量模式下，可以另填<strong>全量对账间隔</strong> <code>86400</code>，每天全量加载一次。也可设置单次加载超时。</dd>
 </dl>
-<p class="note"><strong>数据新鲜度</strong> 增量刷新按水位读取。源表删除和低于已提交水位的迟到数据，需用全量刷新对账。</p>`],
+<p>首次加载会读取全表，即使选择了增量更新。后续增量会重读已提交的水位边界，再按主键合并。主键须稳定、唯一且非空。每次插入或更新都要推进水位。源表物理删除和重读窗口外的变更需要全量对账。</p>
+<p>创建增量表时，可以按增量字段的单位设置<strong>重读窗口</strong>，让任务重新读取更早的记录。来源用非空布尔列或整数列记录删除时，可选择<strong>软删除字段</strong>，让增量刷新移除标记为已删除的主键。</p>
+<p>已创建的表可以通过<strong>刷新配置 → 保存配置</strong>调整下一次任务使用的方式、间隔或超时。只有创建时配置了主键和增量字段的表才提供增量模式。更换来源、加载字段、主键或增量字段时应新建本地表。临时执行一次全量可选择<strong>更多操作 → 从源表全量加载</strong>。<strong>立即同步</strong>使用当前配置的刷新方式。</p>
+<figure>${image("local-sync-settings", "英文创建本地表界面显示 id 被选为主键，增量水位为 updated_seq")}<figcaption>左侧勾选要加载的列，右侧为 <code>id</code> 勾选主键。</figcaption></figure>`],
+        ["status", "查看同步状态与加载历史", ({ code, image }) => `
+<p>进入当前模型的<strong>本地表与同步</strong>，按表名或来源找到表。卡片显示最新任务状态、最近成功行数、刷新策略、下次刷新时间和最近全量对账时间。顶部的<strong>副本已就绪</strong>统计已有可用快照的表。</p>
+<figure>${image("local-tables", "英文同步面板显示 accounts_local 的同步状态、下次刷新以及加载历史入口")}<figcaption>在表卡片上查看当次状态和下次运行时间，也可以打开刷新配置与加载历史。</figcaption></figure>
+<p>点击表卡片上的<strong>加载历史</strong>（Load history），查看最近 20 次任务的刷新方式、触发来源、状态、耗时和行数。<strong>本次读取</strong>可能包含重读的水位边界行，<strong>提交后总计</strong>是副本合并后的行数。任务失败时，在表卡片或历史中查看报错，修复后再重试。</p>
+<details class="example-details"><summary>用 SQLite 样例试一次增量更新</summary>
+<p>首次加载显示三行后，在样例数据库上执行以下命令。对 <code>accounts_local</code> 点击<strong>立即同步</strong>，再打开<strong>加载历史</strong>。重读窗口为默认值零时，本次读取两行（水位 <code>3</code> 和 <code>4</code>），提交后副本共有三行。</p>
+${code("Shell", syncDemoUpdate)}
+</details>
+<figure>${image("local-sync-history", "英文加载历史显示 accounts_local 的全量和增量任务，以及本次读取与提交后总行数")}<figcaption>最近一次全量加载捕获了样例中的一条物理删除。此前的增量更新读取两行，提交后三行。</figcaption></figure>`],
+        ["use-copy", "让图模型读取本地副本", () => `
+<p>副本就绪后，选择<strong>更多操作 → 加入模型数据源</strong>，再在节点或边的来源映射中选择 <code>local_&lt;名称&gt;.data</code>。若已有映射直接使用同一张外部表，可以点<strong>切换映射到本地</strong>。核对映射字段，保存草稿，再校验并发布，查询即可使用副本。</p>`],
         ["recovery", "维护快照", ({ ref }) => `
 <p>加载在发布前失败时，上一份已提交副本仍可读取。备份完整 catalog，包括 <code>.graphlake-local/</code>。Worker 读取副本时必须能访问同一绝对路径。恢复、存储和并发限制见${ref("docs/local-tables.zh-CN.md", "本地表参考")}。</p>`],
         ["managed", "在 HA 集群使用托管快照", ({ code, link }) => `

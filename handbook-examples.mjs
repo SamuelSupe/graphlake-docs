@@ -5,6 +5,19 @@ export const postgresSource = `sources:
     type: postgres
     dsn_env: GRAPHLAKE_LEDGER_DSN`;
 
+export const syncDemoSetup = `catalog_dir=/path/to/your/catalog
+sqlite3 "$catalog_dir/ledger.db" <<'SQL'
+CREATE TABLE accounts (
+  id INTEGER NOT NULL PRIMARY KEY,
+  name TEXT NOT NULL,
+  updated_seq INTEGER NOT NULL
+);
+INSERT INTO accounts VALUES (1, 'Alice', 1), (2, 'Bob', 2), (3, 'Carol', 3);
+SQL`;
+
+export const syncDemoUpdate = `sqlite3 "$catalog_dir/ledger.db" \\
+  "UPDATE accounts SET name = 'Robert', updated_seq = 4 WHERE id = 2;"`;
+
 export const sampleCatalog = readFileSync(
   new URL("./assets/examples/transfer/graph.yaml", import.meta.url), "utf8",
 ).trimEnd();

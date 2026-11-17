@@ -4,7 +4,7 @@ import {
 } from "./examples.mjs";
 import operations from "./operations-en.mjs";
 import handbook from "./handbook-en.mjs";
-import { directTransfers, postgresSource, workbenchPath } from "./handbook-examples.mjs";
+import { directTransfers, postgresSource, syncDemoSetup, syncDemoUpdate, workbenchPath } from "./handbook-examples.mjs";
 
 const workbenchAlt = "GraphLake workbench showing three accounts linked by transfers from the Parquet demo";
 
@@ -94,13 +94,26 @@ ${code("Cypher", graphQuery)}
   <dt>Files and object storage</dt><dd>CSV, JSON Lines, and Parquet. Configure S3, MinIO, OSS, TOS, COS, Azure Blob Storage, or GCS as a connection to browse and map files.</dd>
 </dl>
 <p>Oracle direct access requires Oracle Instant Client on the server. Trino can also expose SQL Server, Oracle, Hive, Hudi, MongoDB, Elasticsearch, and Redshift through configured catalogs. See the ${ref("docs/reference.zh-CN.md#图映射与连接器", "connector reference")} for configuration and supported types.</p>`],
-        ["configure", "Add a source in the workbench", () => `
+        ["configure", "Add a source in the workbench", ({ image }) => `
+<p>Sign in as an administrator. To follow the screenshots, prepare the <a href="#sqlite-demo">SQLite sample</a> before adding the connection.</p>
 <ol>
-  <li>Open <strong>Data Sources</strong> (数据源) in the model draft and select a connector.</li>
-  <li>Enter connection settings or map file paths to table names. For credentials, specify the environment variable names configured on the GraphLake server.</li>
-  <li>Choose <strong>Add to draft</strong> (添加到草稿) and save. Browse tables and columns to confirm the fields you plan to map.</li>
+  <li>Open <strong>Data Sources</strong> in the console and select the model you want to configure. Select <strong>Add data source</strong>, search for the connector, and choose <strong>Configure</strong> on its card. In a new, unsaved model, start from <strong>Add data source</strong> in the modeling guide.</li>
+  <li>Give the source a name unique within the model, without periods. Enter the connection settings or map file paths to table names. For the SQLite sample, use <code>ledger</code> as the name and <code>ledger.db</code> as the <strong>Database file path</strong>.</li>
+  <li>Select <strong>Add to draft</strong>, then <strong>Save draft</strong>. If the configuration panel opens after adding the source, you can save inside that panel. To edit an existing connection, open <strong>Configure</strong> on its source card.</li>
 </ol>
-<p>Use credentials with read access to the intended tables and views. Paths resolve on the GraphLake server. CSV and JSON Lines need explicit column types. Parquet supplies its own schema.</p>`],
+<p>Use read-only credentials and supply the names of server-side environment variables for credential fields. File paths are resolved on the GraphLake server. CSV and JSON Lines require explicit column types, and Parquet carries its schema.</p>
+<figure>${image("source-add", "English Configure SQLite panel showing the ledger source name, ledger.db path, and Add to draft")}<figcaption>Choose <strong>Add to draft</strong> after filling in the connector settings.</figcaption></figure>`],
+        ["sqlite-demo", "Prepare the SQLite sample", ({ code }) => `
+<p>On the GraphLake host, set <code>catalog_dir</code> to the path passed to <code>--catalog-dir</code> for your practice console. Use a directory without an existing <code>ledger.db</code>. Run this command with <code>sqlite3</code> installed, and make the new file readable by the GraphLake service account.</p>
+${code("Shell", syncDemoSetup)}
+<p>The example uses <code>id</code> to identify a row and <code>updated_seq</code> to track changes. After adding the SQLite source as <code>ledger</code>, select <code>ledger.accounts</code> for the sync walkthrough.</p>`],
+        ["browse", "Browse tables and columns", ({ image }) => `
+<ol>
+  <li>On the source card, select <strong>Browse tables and columns</strong>. If the connector shows a schema or namespace selector, choose it first. For PostgreSQL, this could be <code>public</code>.</li>
+  <li>Choose the <strong>Source table</strong>. Read <strong>Column</strong>, <strong>Type</strong>, and <strong>Nullable</strong> in the preview. In the example, <code>id</code> and <code>updated_seq</code> are non-null <code>Int64</code> columns.</li>
+  <li>If a known table is missing from the list, open <strong>Find manually</strong>. Fill in <strong>Fully qualified table name</strong> using the connector’s naming format, then select <strong>Load columns</strong>. When opening the browser from a model mapping or the local-table form, select <strong>Use this table</strong> to fill in the selected table.</li>
+</ol>
+<figure>${image("source-browser", "English source browser showing ledger.accounts and the columns id, name, and updated_seq with types and nullability")}<figcaption>Check the key, endpoint, and watermark fields before using them in a mapping or a sync job.</figcaption></figure>`],
         ["postgres", "Connect PostgreSQL step by step", ({ code, link }) => `
 <ol>
   <li>Create a database identity that can connect and select the tables or views that the graph will use. Confirm that the GraphLake host can reach the database.</li>
@@ -203,22 +216,36 @@ ${code("JSON", '{"account_id":1}')}
     },
     "local-tables": {
       title: "Local tables",
-      description: "Load selected source columns into managed Parquet and use the copy for queries that can tolerate scheduled freshness.",
+      description: "Create a Parquet copy from an external table, set full or incremental refresh, and track sync jobs in the console.",
       sections: [
-        ["load", "Load and publish a copy", ({ image }) => `
+        ["load", "Create and load a local table", ({ link }) => `
 <ol>
-  <li>As an administrator, save the source configuration in a model draft, then open <strong>Local Tables</strong> (本地表).</li>
-  <li>Choose the source table and the columns needed by the model, including keys and endpoints. Create and load the copy.</li>
-  <li>When the run succeeds, add the copy to model sources. Point the mapping to <code>local_&lt;name&gt;.data</code>, validate the draft, and publish it.</li>
-</ol>
-<figure>${image("local-tables", "Local Tables panel showing a successful transfer table load and the next scheduled refresh")}<figcaption>Check copy readiness and run history before switching a mapping.</figcaption></figure>`],
-        ["refresh", "Choose a refresh strategy", () => `
+  <li>As an administrator, ${link("sources", "add the source and save the model draft")}. Open <strong>Data Sources → Local tables and sync</strong> or <strong>Graph Models → Local tables</strong>.</li>
+  <li>Select <strong>Create local table</strong> and enter a name. Under <strong>External source table</strong>, browse to the source, choose the table, and select <strong>Use this table</strong>.</li>
+  <li>In <strong>Columns and primary key</strong>, keep every field used by the model’s keys, endpoints, and properties. For the SQLite sample, name the copy <code>accounts_local</code>, choose <code>ledger.accounts</code>, and keep <code>id</code>, <code>name</code>, and <code>updated_seq</code>.</li>
+  <li>Set the refresh method below. Leave <strong>Load immediately</strong> checked and select <strong>Create local table</strong> to start the first load in the background. If you clear it, select <strong>Load copy</strong> on the table card later.</li>
+</ol>`],
+        ["refresh", "Configure full or incremental refresh", ({ image }) => `
 <dl class="plain-list">
-  <dt>Full refresh</dt><dd>Read the selected fields again and publish a new snapshot. Use this to reflect physical deletes and changes to keys.</dd>
-  <dt>Incremental refresh</dt><dd>Set a stable, unique, non-null key and an integer, date, or timestamp watermark. Advance the watermark on every insert and update. GraphLake rereads the watermark boundary and replaces rows by key.</dd>
-  <dt>Scheduled refresh</dt><dd>Schedule either mode, then check the last successful run and next run time. The first load is full.</dd>
+  <dt>Full replacement</dt><dd>Select <strong>Full replacement</strong> under <strong>Refresh method</strong>. Each load reads the selected columns across the source table and replaces the copy after success. This captures physical deletes and primary-key changes.</dd>
+  <dt>Incremental refresh</dt><dd>While creating the table, tick the <strong>Primary key</strong> checkbox beside each key column and select <strong>Incremental refresh</strong>. Choose a non-null integer, date, or timestamp in <strong>Watermark column</strong>. For the sample, use <code>id</code> as the key and <code>updated_seq</code> as the watermark.</dd>
+  <dt>Scheduled refresh</dt><dd>Under <strong>Schedule</strong>, turn on <strong>Enable scheduled refresh</strong> and set the interval in seconds (minimum <code>30</code>). For example, use <code>3600</code> for hourly refresh and, with incremental mode, <code>86400</code> under <strong>Full reconciliation interval</strong> for a separate daily full load. You can also set the load timeout.</dd>
 </dl>
-<p class="note"><strong>Freshness</strong> Incremental refresh reads by watermark. Reconcile deletes and late rows below the committed watermark with a full refresh.</p>`],
+<p>The first load reads the full source table, including when the configured method is incremental. Later incremental loads reread the committed watermark boundary and merge by key. The key must be stable, unique, and non-null. Advance the watermark on every insert or update. Use a full reconciliation for physical deletes and changes outside the lookback window.</p>
+<p>While creating an incremental table, you can set a <strong>Lookback window</strong> in the watermark column’s units to reread earlier rows. If the source records deletions in a non-null boolean or integer column, select it under <strong>Soft-delete column</strong> to remove the matching keys during incremental refresh.</p>
+<p>On an existing table, <strong>Refresh settings → Save settings</strong> changes the method, intervals, or timeout for the next run. A table needs a key and watermark set at creation to offer incremental mode. Create a new table to change the source, selected columns, key, or watermark. To run a one-off full load, select <strong>More actions → Run full load</strong>. <strong>Sync now</strong> uses the configured refresh method.</p>
+<figure>${image("local-sync-settings", "English Create local table dialog with id checked as the primary key and updated_seq selected for incremental refresh")}<figcaption>The left checkboxes select columns to load. The right checkbox marks <code>id</code> as the primary key.</figcaption></figure>`],
+        ["status", "Check sync status and load history", ({ code, image }) => `
+<p>Open <strong>Local tables and sync</strong> for the selected model and find the table by name or source. The table card shows the latest job status, rows from the latest successful load, refresh policy, next refresh, and last full reconciliation. The <strong>Copy ready</strong> count tracks tables with a usable snapshot.</p>
+<figure>${image("local-tables", "English sync panel showing the status, next refresh time, and Load history action for accounts_local")}<figcaption>Use the table card to check the schedule and open refresh settings or load history.</figcaption></figure>
+<p>Select <strong>Load history</strong> on the table card for the last 20 runs. Each entry shows the mode, trigger, status, duration, and row counts. <strong>Rows read</strong> can include rows at the watermark boundary. <strong>Total after commit</strong> is the size of the resulting copy. If a run fails, check the error on the card or in history and retry after fixing it.</p>
+<details class="example-details"><summary>Try an incremental update with the SQLite sample</summary>
+<p>After the first load shows three rows, run this command on the sample database. Select <strong>Sync now</strong> on <code>accounts_local</code> and open <strong>Load history</strong>. With the default lookback of zero, two rows are read (watermarks <code>3</code> and <code>4</code>), and the copy has three rows after commit.</p>
+${code("Shell", syncDemoUpdate)}
+</details>
+<figure>${image("local-sync-history", "English Load history for accounts_local showing successful incremental and full runs and committed row totals")}<figcaption>The latest full run captured a physical deletion in the sample. The earlier incremental update read two rows and committed a three-row copy.</figcaption></figure>`],
+        ["use-copy", "Use the local copy in the graph", () => `
+<p>Once a copy is ready, select <strong>More actions → Add as model data source</strong> and pick <code>local_&lt;name&gt;.data</code> in a node or edge mapping. To replace mappings already using that exact external table, choose <strong>Switch mappings to local copy</strong>. Check the mapped columns, save the draft, validate it, and publish the model to direct queries to the copy.</p>`],
         ["recovery", "Maintain the snapshot", ({ ref }) => `
 <p>A failed load before publication leaves the prior committed copy available. Back up the entire catalog, including <code>.graphlake-local/</code>. Workers reading local copies need access at the same absolute path. See the ${ref("docs/local-tables.zh-CN.md", "local tables reference")} for recovery, storage, and concurrency limits.</p>`],
         ["managed", "Use shared managed snapshots in HA", ({ code, link }) => `

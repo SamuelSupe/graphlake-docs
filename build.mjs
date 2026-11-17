@@ -15,6 +15,10 @@ const pages = groups.flatMap(([, slugs]) => slugs);
 const screenshotHeights = {
   workbench: 948,
   "local-tables": 805,
+  "source-add": 861,
+  "source-browser": 805,
+  "local-sync-settings": 805,
+  "local-sync-history": 805,
   "model-editor": 921,
   "query-parameters": 1130,
   "query-neighbors": 1189,

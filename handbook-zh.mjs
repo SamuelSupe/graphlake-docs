@@ -19,6 +19,7 @@ export default {
 <ul class="task-list">
   <li><strong>${link("concepts", "理解图模型")}</strong> 了解数据源、业务键、关系与发布版本之间的联系。</li>
   <li><strong>${link("sources", "接入自己的数据")}</strong> 选择连接器、查看字段，决定直接查询或加载本地副本。</li>
+  <li><strong>${link("local-tables", "同步本地副本")}</strong> 配置全量或增量刷新，并查看加载历史。</li>
   <li><strong>${link("model", "在控制台建立图模型")}</strong> 跟着画布教程配置业务键和端点，再发布模型。</li>
   <li><strong>${link("query", "使用查询与图探索工作台")}</strong> 设置 Cypher 参数、切换结果视图，并展开节点的邻居。</li>
   <li><strong>${link("query-recipes", "运行查询示例")}</strong> 用 Cypher 查路径、用 SQL 汇总、用 Gremlin 遍历。</li>

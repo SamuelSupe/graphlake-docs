@@ -49,7 +49,7 @@ ${packagesList("SHA-256 校验文件")}
 <p>也可以在下载目录执行以下命令。校验输出 <code>OK</code> 后，在同一个终端会话继续安装。</p>
 ${code("Shell", download)}`],
         ["install", "2. 安装服务", ({ code, link }) => `
-<p>以下命令适用于首次安装。已有服务请先查看${link("deploy", "升级步骤")}。如果手动下载了文件，请先将 <code>artifact</code> 设为去掉 <code>.tar.gz</code> 的文件名，并完成校验。版本目录存放二进制和网页，<code>/var/lib/graphlake</code> 下的 catalog 存放模型和服务状态。</p>
+<p>以下命令适用于首次安装。已有服务请先查看${link("upgrade", "升级步骤")}。如果手动下载了文件，请先将 <code>artifact</code> 设为去掉 <code>.tar.gz</code> 的文件名，并完成校验。版本目录存放二进制和网页，<code>/var/lib/graphlake</code> 下的 catalog 存放模型和服务状态。</p>
 ${code("Shell", install)}`],
         ["start", "3. 初始化并启动", ({ code }) => `
 <p>按提示设置 <code>admin</code> 密码。每个 catalog 初始化一次认证。服务启动后执行两项探测。</p>
@@ -345,10 +345,10 @@ ${code("Cypher", "MATCH p = (report:Dataset)-[:DERIVED_FROM*1..4]->(:Dataset)\nW
         ["health", "检查健康与数据访问", ({ link }) => `
 <p>通过 <code>/healthz</code> 查看运行构建，使用 <code>/readyz</code> 检查就绪状态。在运行健康界面探测已发布模型的来源和 Worker，并通过业务入口运行结果已知的查询。按需采集 Prometheus 指标、审计事件和 OpenTelemetry 信号。</p>
 <p>探测及遥测配置见${link("monitoring", "监控指南")}。</p>`],
-        ["recover", "升级、回退与恢复", ({ link, ref }) => `
+        ["recover", "升级、回退与恢复", ({ link }) => `
 <p>备份 catalog 和凭据配置，保留旧程序。停止单机服务，把新发行包解压到独立目录，按需切换 <code>current</code> 与 systemd 单元后启动。检查运行版本、模型版本和已知查询；回退时切回旧程序，必要时恢复配套的 catalog。</p>
 <p>异地恢复点应绑定控制状态、PostgreSQL 和 Parquet 快照及预期查询结果。在目标站点的 <code>/recovery</code> 页面导入恢复点，通过验收后再接入流量。保留控制归档引用的本地表文件。单机部署另行备份 catalog。</p>
-<p>详细步骤见${ref("docs/deployment.md#upgrade-and-rollback", "升级指南")}与${link("recovery", "备份与恢复指南")}。</p>`],
+<p>详细步骤见${link("upgrade", "版本升级与回滚指南")}与${link("recovery", "备份与恢复指南")}。</p>`],
       ],
     },
   },

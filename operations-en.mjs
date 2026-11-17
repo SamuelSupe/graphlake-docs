@@ -1,3 +1,4 @@
+import upgrade from "./upgrade-en.mjs";
 import {
   coordinatorOverride, fingerprintPostgres, haFlags, installClusterConfig, installMonitor,
   labCluster, productionCluster, recoveryManifest, serviceChecks, setupBackupTimer,
@@ -5,6 +6,7 @@ import {
 } from "./operations-examples.mjs";
 
 export default {
+  upgrade,
   cluster: {
     title: "Install a cluster",
     description: "Deploy a Coordinator and Workers, verify distributed queries, then extend the same setup to a multi-host cluster with failover.",
@@ -35,7 +37,7 @@ ${code("YAML", productionCluster)}
 <p>Give the two Coordinator hosts the same build, cluster namespace, and bootstrap catalog, including the same administrator password hash. Add these flags to both Coordinator service commands. Set the public URL to the actual HTTPS origin used by the browser.</p>
 ${code("Shell flags", haFlags)}
 <p>Start one Coordinator and wait for initial import to complete, then start the standby. Use a TLS ingress that forwards to the private Coordinator listeners and routes HTTP to the instance passing <code>/coordinator/active</code>. The packaged ${ref("deploy/haproxy.cfg", "HAProxy configuration")} shows HTTPS, Gremlin WebSocket, Bolt handshake, and recovery routing. Enable and test the Bolt listener only if clients use Bolt.</p>
-<p>From the client endpoint, verify HTTPS readiness and a known-result query. In a controlled failover drill, stop the active Coordinator and verify the standby becomes active, then repeat the same query and reconnect each enabled driver. Observe both nodes through their private status ports. Upgrade Workers before Coordinators and retain a ${link("recovery", "pre-upgrade recovery checkpoint")}. See the ${ref("deploy/cluster.md#冗余入口", "redundant ingress reference")} when deploying HAProxy and Keepalived together.</p>`],
+<p>From the client endpoint, verify HTTPS readiness and a known-result query. In a controlled failover drill, stop the active Coordinator and verify the standby becomes active, then repeat the same query and reconnect each enabled driver. Observe both nodes through their private status ports. Follow the ${link("upgrade", "upgrade and rollback guide")} for Worker order and the recovery checkpoint. See the ${ref("deploy/cluster.md#冗余入口", "redundant ingress reference")} when deploying HAProxy and Keepalived together.</p>`],
     ],
   },
   monitoring: {

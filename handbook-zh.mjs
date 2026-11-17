@@ -35,6 +35,7 @@ export default {
   <li><strong>${link("access", "配置权限")}</strong> 为分析人员、服务账号或 AI 客户端授予所需权限。</li>
   <li><strong>${link("mcp", "连接 AI 客户端")}</strong> 开启 MCP 服务、签发个人令牌，并验证客户端可用的工具。</li>
   <li><strong>${link("cluster", "安装集群")}</strong> 启动 Worker，配置 Coordinator 故障接管并验证业务入口。</li>
+  <li><strong>${link("upgrade", "版本升级与回滚")}</strong> 备份同一检查点，逐步升级并验收单机或集群。</li>
   <li><strong>${link("monitoring", "监控运行状态")}</strong> 检查模型、数据源和 Worker，配置日志与遥测。</li>
   <li><strong>${link("recovery", "备份和恢复")}</strong> 创建恢复点，在目标站恢复并核对业务结果后切流。</li>
   <li><strong>${link("troubleshoot", "定位故障")}</strong> 排查数据源连接、同步、查询、Worker 和备份恢复故障。</li>

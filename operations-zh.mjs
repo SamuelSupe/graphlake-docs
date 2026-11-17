@@ -1,3 +1,4 @@
+import upgrade from "./upgrade-zh.mjs";
 import {
   coordinatorOverride, fingerprintPostgres, haFlags, installClusterConfig, installMonitor,
   labCluster, productionCluster, recoveryManifest, serviceChecks, setupBackupTimer,
@@ -5,6 +6,7 @@ import {
 } from "./operations-examples.mjs";
 
 export default {
+  upgrade,
   cluster: {
     title: "集群安装",
     description: "部署 Coordinator 和 Worker，验证分布式查询，再扩展到跨主机和故障接管。",
@@ -35,7 +37,7 @@ ${code("YAML", productionCluster)}
 <p>两台 Coordinator 使用相同构建、集群命名空间和启动用的 catalog，管理员密码哈希也保持一致。在两台 Coordinator 的服务命令中加入下方参数，并将公开地址设为浏览器访问的正式 HTTPS 源地址。</p>
 ${code("Shell flags", haFlags)}
 <p>先启动一台 Coordinator 并等待首次导入完成，再启动备用实例。TLS 入口通过私有转发访问 Coordinator，只将 HTTP 请求路由至通过 <code>/coordinator/active</code> 检查的实例。随包的 ${ref("deploy/haproxy.cfg", "HAProxy 配置")}包含 HTTPS、Gremlin WebSocket、Bolt 握手和恢复路由。仅在客户端需要 Bolt 时启用并验证 Bolt 监听。</p>
-<p>通过真实入口检查 HTTPS 就绪并运行结果已知的查询。故障接管演练中停止当前活动 Coordinator，确认备用节点接管并重新执行同一查询，再验证各启用的驱动能重连。使用独立状态端口观察两个节点。升级时先升级 Worker，再升级 Coordinator，并保留${link("recovery", "升级前的恢复点")}。使用 HAProxy 与 Keepalived 双入口时，参见${ref("deploy/cluster.md#冗余入口", "冗余入口参考")}。</p>`],
+<p>通过真实入口检查 HTTPS 就绪并运行结果已知的查询。故障接管演练中停止当前活动 Coordinator，确认备用节点接管并重新执行同一查询，再验证各启用的驱动能重连。使用独立状态端口观察两个节点。Worker 升级顺序与恢复检查点见${link("upgrade", "版本升级与回滚指南")}。使用 HAProxy 与 Keepalived 双入口时，参见${ref("deploy/cluster.md#冗余入口", "冗余入口参考")}。</p>`],
     ],
   },
   monitoring: {

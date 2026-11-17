@@ -9,7 +9,7 @@ const groups = [
   ["start", ["", "docs", "install", "first-model", "quickstart", "concepts"]],
   ["guides", ["sources", "datasources", "model", "query", "query-recipes", "algorithms", "local-tables", "use-cases"]],
   ["integration", ["clients", "access", "mcp"]],
-  ["operations", ["deploy", "cluster", "monitoring", "recovery", "troubleshoot"]],
+  ["operations", ["deploy", "cluster", "upgrade", "monitoring", "recovery", "troubleshoot"]],
 ];
 const pages = groups.flatMap(([, slugs]) => slugs);
 const screenshotHeights = {
@@ -30,6 +30,8 @@ const screenshotHeights = {
   "mcp-settings": 861,
   "mcp-client-setup": 1077,
   "mcp-verify": 1713,
+  "upgrade-model-health": 805,
+  "upgrade-query-result": 1000,
   "ops-health": 805,
   "ops-telemetry": 805,
   "ops-backups": 805,

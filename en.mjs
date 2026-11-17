@@ -49,7 +49,7 @@ ${packagesList("SHA-256 checksum")}
 <p>Or use the following commands in a download directory. Continue after the checksum reports <code>OK</code>. Keep the same shell for the installation steps.</p>
 ${code("Shell", download)}`],
         ["install", "2. Install the service", ({ code, link }) => `
-<p>Use these commands for a fresh installation. For an existing service, follow the ${link("deploy", "upgrade procedure")} first. If you downloaded the files manually, set <code>artifact</code> to the archive filename without <code>.tar.gz</code> and verify the checksum before continuing. The release directory holds the binaries and UI. The catalog under <code>/var/lib/graphlake</code> holds models and service state.</p>
+<p>Use these commands for a fresh installation. For an existing service, follow the ${link("upgrade", "upgrade procedure")} first. If you downloaded the files manually, set <code>artifact</code> to the archive filename without <code>.tar.gz</code> and verify the checksum before continuing. The release directory holds the binaries and UI. The catalog under <code>/var/lib/graphlake</code> holds models and service state.</p>
 ${code("Shell", install)}`],
         ["start", "3. Initialize and start", ({ code }) => `
 <p>Choose the <code>admin</code> password when prompted. Initialize authentication once per catalog. Run both probes after starting the unit.</p>
@@ -344,10 +344,10 @@ ${code("Cypher", "MATCH p = (report:Dataset)-[:DERIVED_FROM*1..4]->(:Dataset)\nW
         ["health", "Check health and data access", ({ link }) => `
 <p>Check the build at <code>/healthz</code> and readiness at <code>/readyz</code>. Use runtime health to probe published sources and Workers, then run a known-result query through the same ingress clients use. Collect Prometheus metrics, audit events, and OpenTelemetry signals as needed.</p>
 <p>See the ${link("monitoring", "monitoring guide")} for probe and telemetry setup.</p>`],
-        ["recover", "Upgrade, roll back, and recover", ({ link, ref }) => `
+        ["recover", "Upgrade, roll back, and recover", ({ link }) => `
 <p>Back up the catalog and credential configuration, and keep the previous binary release. Stop the standalone service, unpack the new archive into a separate directory, switch <code>current</code> and the unit as needed, then restart. Confirm the running build, model revision, and known-result query. Rollback restores the old release and its matching catalog when needed.</p>
 <p>For off-site recovery, keep a checkpoint that binds control state, PostgreSQL and Parquet snapshots, and expected business-query results. In the target <code>/recovery</code> page, import the checkpoint and pass acceptance checks before reopening traffic. Include local table artifacts referenced by the control export and keep a separate catalog backup for standalone deployments.</p>
-<p>See the ${ref("docs/deployment.md#upgrade-and-rollback", "upgrade guide")} and ${link("recovery", "backup and recovery guide")}.</p>`],
+<p>See the ${link("upgrade", "upgrade and rollback guide")} and ${link("recovery", "backup and recovery guide")}.</p>`],
       ],
     },
   },

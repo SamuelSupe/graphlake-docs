@@ -1,6 +1,6 @@
 # GraphLake documentation site
 
-English and Simplified Chinese guides for GraphLake v1.1.0. The English site starts at `/` and the Chinese site starts at `/zh/`. The output can also be served under a path prefix.
+English and Simplified Chinese guides for GraphLake v1.1.0. [Live site](https://graphlake-docs.pages.dev/) · [中文文档](https://graphlake-docs.pages.dev/zh/). The English site starts at `/` and the Chinese site starts at `/zh/`. The output can also be served under a path prefix.
 
 ## Build and preview
 
@@ -15,15 +15,14 @@ Open [English](http://127.0.0.1:4173/) or [中文](http://127.0.0.1:4173/zh/). D
 
 ## Cloudflare Pages
 
-For Git-connected deployment, select this repository in Cloudflare Pages and use these build settings.
+The production site uses Cloudflare Pages Direct Upload. From a clean checkout of `main`, build and deploy with an authenticated Wrangler session that has Pages write access.
 
-| Setting | Value |
-| --- | --- |
-| Production branch | `main` |
-| Framework preset | None |
-| Build command | `node build.mjs` |
-| Build output directory | `dist` |
-| Node.js version (`NODE_VERSION`) | `24` |
+```sh
+node build.mjs
+npx --yes wrangler@4.163.0 pages deploy dist --project-name graphlake-docs --branch main
+```
+
+Deployments run when this command is invoked. GitHub pushes update the source repository.
 
 ## Update a guide
 

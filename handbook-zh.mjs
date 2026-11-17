@@ -1,7 +1,8 @@
+import algorithms from "./algorithms-zh.mjs";
 import clients from "./clients-zh.mjs";
 import troubleshoot from "./troubleshooting-zh.mjs";
 import {
-  components, downloadSample, followPath, outgoingCounts, pageRank, route,
+  downloadSample, followPath, outgoingCounts,
   runSample, sampleCatalog, sampleWorkbench, transferTotals,
   twoHopTraversal,
 } from "./handbook-examples.mjs";
@@ -26,7 +27,7 @@ export default {
   <li><strong>${link("model", "在控制台建立图模型")}</strong> 跟着画布教程配置业务键和端点，再发布模型。</li>
   <li><strong>${link("query", "使用查询与图探索工作台")}</strong> 设置 Cypher 参数、切换结果视图，并展开节点的邻居。</li>
   <li><strong>${link("query-recipes", "运行查询示例")}</strong> 用 Cypher 查路径、用 SQL 汇总、用 Gremlin 遍历。</li>
-  <li><strong>${link("algorithms", "运行图算法")}</strong> 比较路径成本、排序节点或识别连通群组。</li>
+  <li><strong>${link("algorithms", "运行图算法")}</strong> 创建和刷新 CSR，运行并验证最短路径、PageRank 和弱连通分量。</li>
 </ul>`],
       ["integrate-and-operate", "应用接入与运维", ({ link }) => `
 <ul class="task-list">
@@ -120,33 +121,7 @@ ${code("Gremlin", twoHopTraversal)}
 <p>如何查看图结果、继续加载和导出 Arrow，参见${link("query", "查询与探索")}。</p>`],
     ],
   },
-  algorithms: {
-    title: "图算法",
-    description: "选择图范围，在样例上运行算法，并理解结果和资源占用。",
-    sections: [
-      ["choose", "按问题选择算法和图范围", ({ link }) => `
-<dl class="plain-list">
-  <dt>最短路径</dt><dd>寻找两个已知端点之间成本较低的路线，成本可以是跳数，也可以是映射后的数值边属性。</dd>
-  <dt>PageRank</dt><dd>在有向图上综合入边和对应源节点的分配权重，对节点进行排序。</dd>
-  <dt>弱连通分量</dt><dd>忽略边方向，找出彼此连通的节点组。</dd>
-  <dt>社区与向量</dt><dd>用 Louvain 或 Leiden 划分社区，用 Node2Vec 为节点生成向量特征。</dd>
-</dl>
-<p>执行前确定边类型、方向和权重。使用权重时，各候选边类型都要映射该字段且取值满足算法要求。以下示例使用${link("first-model", "三个账户的样例图")}。</p>`],
-      ["rank", "用 PageRank 排序账户", ({ code }) => `
-${code("Cypher", pageRank)}
-<p>应返回三个账户及其分数。比较同一个图投影里的分数。选择另一种边或方向时，计算所用的图也会改变。</p>`],
-      ["components", "找出连通群组", ({ code }) => `
-${code("Cypher", components)}
-<p>Alice、Bob 和 Carol 属于同一个连通分量。对比分量标识即可判断节点是否同组。如需判断某个方向是否可达，再执行路径查询。</p>`],
-      ["route", "查找加权路线", ({ code }) => `
-<p>在样例目录执行下方命令。此处用转账金额演示如何指定成本字段。</p>
-${code("Shell", route)}
-<p class="note"><strong>预期结果</strong> 从账户 <code>1</code> 到 <code>3</code> 有一条两跳路线，精确成本为 <code>37.75</code>。</p>`],
-      ["csr", "选择在线数据或 CSR 代次", ({ link, ref }) => `
-<p>重复遍历时，管理员或具备发布权限的成员可为已发布模型构建 CSR 代次，也就是压缩后的邻接快照。在<strong>查询选项</strong>中选择代次前，核对它的图范围和来源状态。需要反映数据或范围的变更时，重新构建。</p>
-<p>${link("cluster", "集群")}上的部分 PageRank 和弱连通分量任务可使用分区 CSR。社区检测和 Node2Vec 在执行节点上使用完整投影。支持的操作、内存预算和权重约束见${ref("docs/reference.zh-CN.md#整图算法", "算法参考")}。</p>`],
-    ],
-  },
+  algorithms,
   clients,
   access: {
     title: "用户与权限",

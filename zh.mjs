@@ -208,9 +208,10 @@ ${code("JSON", '{"account_id":1}')}
 </ol>
 <p>每次展开查找选中节点的一跳邻居。若还有匹配项，点击<strong>加载下一页</strong>可为同一节点加入下一批。要向外再走一跳，请选中新加入的节点再展开。<strong>表格</strong>和<strong>原始响应</strong>读取的是查询执行结果。模型版本切换后，重新运行查询再继续探索。</p>
 <figure>${image("query-neighbors", "英文图探索画布显示 Alice 到 Bob 到 Carol，选中 Bob 后可看到出边和 Transfer 展开筛选")}<figcaption>展开 Bob 的转账出边后，Carol 加入画布。标签页上方的行数统计对应查询执行结果。</figcaption></figure>`],
-        ["export", "处理大结果集", ({ ref }) => `
+        ["export", "处理大结果集", ({ link, ref }) => `
 <p>工作台显示有界预览。无需继续的查询可以取消。需要完整结果时，使用具备查询和导出权限的账号开启完整结果捕获，下载 Arrow IPC。探索大图时使用过滤条件、跳数限制与资源限制。</p>
-<p>应用可使用 HTTP、Bolt、Gremlin WebSocket、CLI 或嵌入式 Rust。更多信息见${ref("docs/reference.zh-CN.md#查询语义与资源控制", "查询语义与协议")}和${ref("docs/reference.zh-CN.md#整图算法", "整图算法")}，包括最短路径、PageRank、社区发现等。</p>`],
+<p>应用可使用 HTTP、Bolt、Gremlin WebSocket、CLI 或嵌入式 Rust。更多信息见${ref("docs/reference.zh-CN.md#查询语义与资源控制", "查询语义与协议")}和${ref("docs/reference.zh-CN.md#整图算法", "整图算法")}，包括最短路径、PageRank、社区发现等。</p>
+<p>查看可运行的最短路径、PageRank 和连通分量示例，参见${link("algorithms", "图算法与 CSR")}。</p>`],
       ],
     },
     "local-tables": {

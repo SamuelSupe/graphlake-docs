@@ -207,9 +207,10 @@ ${code("JSON", '{"account_id":1}')}
 </ol>
 <p>Each expansion adds one hop around the selected node. If more matches are available, select <strong>Load next page</strong> to add another batch for the same node. To follow another hop, select one of the newly added nodes and expand it. <strong>Table</strong> and <strong>Raw response</strong> read from the query execution. If the model revision changes, rerun the query before continuing.</p>
 <figure>${image("query-neighbors", "English Graph view showing Alice to Bob to Carol, with Bob selected and the Outgoing Transfer expansion controls visible")}<figcaption>Bob’s outgoing transfer adds Carol to the graph. The row count above the tabs refers to the query execution.</figcaption></figure>`],
-        ["export", "Work with larger results", ({ ref }) => `
+        ["export", "Work with larger results", ({ link, ref }) => `
 <p>The workbench shows a bounded preview. Use cancellation for a query you no longer need. For complete results, enable full-result capture and download Arrow IPC with query and export permissions. Use filters, hop bounds, and resource limits to keep exploratory queries predictable.</p>
-<p>Applications can use HTTP, Bolt, Gremlin WebSocket, the CLI, or embedded Rust. See the ${ref("docs/reference.zh-CN.md#查询语义与资源控制", "query and protocol reference")} and the ${ref("docs/reference.zh-CN.md#整图算法", "graph algorithms reference")} for shortest paths, PageRank, and community detection.</p>`],
+<p>Applications can use HTTP, Bolt, Gremlin WebSocket, the CLI, or embedded Rust. See the ${ref("docs/reference.zh-CN.md#查询语义与资源控制", "query and protocol reference")} and the ${ref("docs/reference.zh-CN.md#整图算法", "graph algorithms reference")} for shortest paths, PageRank, and community detection.</p>
+<p>For runnable shortest path, PageRank, and component examples, see ${link("algorithms", "Graph algorithms and CSR")}.</p>`],
       ],
     },
     "local-tables": {

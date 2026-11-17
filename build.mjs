@@ -22,6 +22,8 @@ const screenshotHeights = {
   "model-editor": 921,
   "query-parameters": 1130,
   "query-neighbors": 1189,
+  "csr-model-health": 805,
+  "csr-shortest-result": 1050,
   "access-model-role": 861,
   "clients-published-model": 805,
   "clients-service-account": 805,

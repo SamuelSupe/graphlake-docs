@@ -60,15 +60,24 @@ export const followPath = `MATCH p = (a:Account)-[:Transfer]->(:Account)-[:Trans
 WHERE a.id = $account_id
 RETURN p`;
 
-export const pageRank = `CALL algo.pagerank({relationshipTypes: ['Transfer']})
+export const csrSample = downloadSample + "\nprintf '4,Dana\\n' >> accounts.csv";
+
+export const shortestPath = `MATCH p = shortestPath(
+  (a:Account {id: 1})-[:Transfer*1..4]->(b:Account {id: 3})
+)
+RETURN p, [n IN nodes(p) | n.name] AS accounts, length(p) AS hops`;
+
+export const pageRank = `CALL algo.pagerank({
+  relationshipTypes: ['Transfer'], damping: 0.85, tolerance: 0.00000001, maxIterations: 100
+})
 YIELD id, rank
-RETURN id.key AS account, rank
-ORDER BY rank DESC, account`;
+RETURN id.key AS account, rank ORDER BY rank DESC, account`;
 
 export const components = `CALL algo.wcc({relationshipTypes: ['Transfer']})
 YIELD id, component
-RETURN id.key AS account, component
-ORDER BY account`;
+RETURN id.key AS account, component.key AS component_account ORDER BY account`;
+
+export const csrRefreshDemo = `printf '%s\\n' '{"id":12,"src":3,"dst":4,"amount":"5.00"}' >> transfers.jsonl`;
 
 export const route = `/opt/graphlake/current/bin/graphlake --catalog graph.yaml route \\
   --edge Transfer --weight amount \\

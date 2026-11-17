@@ -1,7 +1,8 @@
+import algorithms from "./algorithms-en.mjs";
 import clients from "./clients-en.mjs";
 import troubleshoot from "./troubleshooting-en.mjs";
 import {
-  components, downloadSample, followPath, outgoingCounts, pageRank, route,
+  downloadSample, followPath, outgoingCounts,
   runSample, sampleCatalog, sampleWorkbench, transferTotals,
   twoHopTraversal,
 } from "./handbook-examples.mjs";
@@ -26,7 +27,7 @@ export default {
   <li><strong>${link("model", "Model a graph in the console")}</strong> Follow the canvas walkthrough to map business keys and endpoints, then publish.</li>
   <li><strong>${link("query", "Use the query and graph workspace")}</strong> Set Cypher parameters, switch result views, and expand a node’s neighbors.</li>
   <li><strong>${link("query-recipes", "Run query recipes")}</strong> Follow paths in Cypher, summarize rows in SQL, and traverse in Gremlin.</li>
-  <li><strong>${link("algorithms", "Run graph algorithms")}</strong> Compare paths, rank nodes, or identify connected groups.</li>
+  <li><strong>${link("algorithms", "Run graph algorithms")}</strong> Build and refresh CSR, then verify shortest paths, PageRank, and weak components.</li>
 </ul>`],
       ["integrate-and-operate", "Connect applications and operate", ({ link }) => `
 <ul class="task-list">
@@ -120,33 +121,7 @@ ${code("Gremlin", twoHopTraversal)}
 <p>For the next step, see ${link("query", "Query and explore")} for result views, pagination, and Arrow export.</p>`],
     ],
   },
-  algorithms: {
-    title: "Graph algorithms",
-    description: "Choose a graph projection, run an algorithm on the sample, and interpret its result and resource use.",
-    sections: [
-      ["choose", "Choose an algorithm and graph scope", ({ link }) => `
-<dl class="plain-list">
-  <dt>Shortest path</dt><dd>Find a low-cost route between known endpoints. Decide whether cost means hops or a mapped numeric edge property.</dd>
-  <dt>PageRank</dt><dd>Rank nodes in a directed graph based on incoming relationships and how their sources distribute rank.</dd>
-  <dt>Weakly connected components</dt><dd>Group nodes connected by any route when edge direction is ignored.</dd>
-  <dt>Communities and embeddings</dt><dd>Use Louvain or Leiden to group a projected graph, and Node2Vec to produce vector features.</dd>
-</dl>
-<p>Choose edge types, direction, and weights before running the algorithm. If you use a weight, all selected edge types must expose that field with supported numeric values. The examples below use the ${link("first-model", "three-account sample")}.</p>`],
-      ["rank", "Rank accounts with PageRank", ({ code }) => `
-${code("Cypher", pageRank)}
-<p>Expect a score for each of the three accounts. Sort by rank to compare nodes within the same projection. Changing edge selection or direction changes the graph being ranked.</p>`],
-      ["components", "Find connected groups", ({ code }) => `
-${code("Cypher", components)}
-<p>Alice, Bob, and Carol share one component. Comparing component IDs tells you whether nodes lie in the same group. A common component does not, by itself, specify a directed route.</p>`],
-      ["route", "Find a weighted route", ({ code }) => `
-<p>Run the CLI command in the sample directory. This treats the transfer amount as an illustrative numeric cost.</p>
-${code("Shell", route)}
-<p class="note"><strong>Expected result</strong> A two-hop route from account <code>1</code> to <code>3</code>, with exact cost <code>37.75</code>.</p>`],
-      ["csr", "Choose live data or a CSR generation", ({ link, ref }) => `
-<p>For repeated graph traversals, an administrator or publisher can build a CSR generation, which is a compressed adjacency snapshot of a published model. In <strong>Query options</strong>, choose an available generation only if its source state and graph scope match the question. Rebuild after changing mapped data or scope when the result needs the new state.</p>
-<p>In a ${link("cluster", "cluster")}, supported PageRank and component workloads can use partitioned CSR. Community detection and Node2Vec work on a whole projection on the execution node. Check available operations, memory budgets, and weighting rules in the ${ref("docs/reference.zh-CN.md#整图算法", "algorithm reference")}.</p>`],
-    ],
-  },
+  algorithms,
   clients,
   access: {
     title: "Users and permissions",

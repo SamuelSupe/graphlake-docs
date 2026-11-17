@@ -4,7 +4,7 @@ import {
 } from "./examples.mjs";
 import operations from "./operations-zh.mjs";
 import handbook from "./handbook-zh.mjs";
-import { postgresSource } from "./handbook-examples.mjs";
+import { directTransfers, postgresSource } from "./handbook-examples.mjs";
 
 const workbenchAlt = "GraphLake 查询工作台，展示 Parquet 示例中的三个账户及其转账关系";
 
@@ -115,21 +115,51 @@ ${code("YAML", postgresSource)}
     },
     model: {
       title: "建立图模型",
-      description: "把实体映射为节点，把关联映射为有向边，发布后团队即可查询。",
+      description: "在控制台从两个文件建立账户转账图，在画布上配置节点和有向边，发布后用查询核对结果。",
       sections: [
-        ["keys", "定义节点和边的键", ({ code, ref, link }) => `
+        ["ui-start", "1. 新建图模型", ({ asset, link }) => `
+<p>本教程使用管理员账号登录已启动的 GraphLake 控制台。编辑已有模型时，可以在<strong>图模型</strong>列表直接打开它。能否编辑和发布由${link("access", "模型权限")}决定。尚未启动服务时，参见${link("install", "安装指南")}。</p>
+<ol>
+  <li>下载 ${asset("examples/transfer/accounts.csv", "accounts.csv")} 和 ${asset("examples/transfer/transfers.jsonl", "transfers.jsonl")}，放到服务启动参数 <code>--catalog-dir</code> 指定的目录。需要独立的练习环境时，可以使用${link("first-model", "第一个图模型教程")}中的样例目录，其中已有这两个文件。</li>
+  <li>选择<strong>图模型 → 新建模型</strong>，<strong>名称</strong>填写 <code>Transfer demo</code>，<strong>模型标识</strong>填写 <code>transfer-demo</code>，点击<strong>继续</strong>。API 和客户端可通过模型标识访问该模型。</li>
+</ol>`],
+        ["ui-sources", "2. 接入两个样例文件", () => `
+<p>在建模指引中选择<strong>添加数据源</strong>。添加第二个来源时，从建模工具栏打开<strong>更多工具 → 添加数据源</strong>。模型保存后，可通过<strong>数据源</strong>入口管理连接。</p>
+<dl class="plain-list">
+  <dt>CSV 账户表</dt><dd>选择 <strong>CSV</strong> 连接器，数据源名称填写 <code>people</code>。在<strong>表映射</strong>中新建 <code>accounts</code>，文件路径填 <code>accounts.csv</code>。按文件顺序声明两列，<code>id</code> 为 <code>Int64</code>，<code>name</code> 为 <code>Utf8</code>。</dd>
+  <dt>JSON Lines 转账表</dt><dd>选择 <strong>JSON Lines</strong> 连接器，数据源名称填写 <code>payments</code>。在<strong>表映射</strong>中新建 <code>transfers</code>，文件路径填 <code>transfers.jsonl</code>。将 <code>id</code>、<code>src</code> 和 <code>dst</code> 声明为 <code>Int64</code>，<code>amount</code> 声明为 <code>Decimal128(18, 2)</code>。</dd>
+</dl>
+<p>使用<strong>添加列</strong>逐项补齐字段。两个表的 <code>id</code> 列都不勾选<strong>允许空值</strong>。每个连接器配置完成后，点击<strong>添加到草稿</strong>。文件路径由 GraphLake 服务端读取。</p>`],
+        ["ui-node", "3. 映射 Account 节点标签", () => `
+<ol>
+  <li>在建模工具栏中选择<strong>添加节点</strong>，名称输入 <code>Account</code>，点击<strong>添加</strong>。</li>
+  <li>在<strong>配置详情</strong>中，将<strong>来源表</strong>设为 <code>people.accounts</code>，<strong>业务键</strong>设为 <code>id</code>。业务键须能唯一标识 <code>Account</code> 标签下的账户。</li>
+  <li>点击<strong>属性</strong>旁的 <strong>+</strong>，添加 <code>name</code>。需要核对列名或类型时，点击<strong>浏览表与字段</strong>。</li>
+</ol>`],
+        ["ui-edge", "4. 连线并配置 Transfer 边", ({ image }) => `
+<ol>
+  <li>选择<strong>连线建边</strong>，先后点击 <code>Account</code>，把它选为起点和终点标签。边类型名称输入 <code>Transfer</code>，点击<strong>创建边</strong>。</li>
+  <li>把<strong>来源表</strong>设为 <code>payments.transfers</code>。点击<strong>业务键</strong>旁的 <strong>+</strong> 添加 <code>id</code>，用它唯一标识每笔转账。</li>
+  <li>在<strong>端点映射</strong>中，<strong>起点</strong>填写 <code>src</code>，<strong>终点</strong>填写 <code>dst</code>。两处箭头右侧的 <code>id</code> 表示匹配 <code>Account</code> 的业务键列。最后在<strong>属性</strong>中添加 <code>amount</code>。</li>
+</ol>
+<p>画布显示的是节点标签和边类型。回环表示两端都是 <code>Account</code> 标签。每条转账记录的 <code>src</code> 和 <code>dst</code> 值决定它实际连接哪两个账户。</p>
+<figure>${image("model-editor", "英文版 GraphLake 建模画布选中了 Transfer 边，src 和 dst 两个端点字段均映射到 Account.id")}<figcaption>点击画布上的节点或边即可再次打开映射详情，也可以从工具栏的<strong>节点</strong>和<strong>边</strong>列表定位目标。</figcaption></figure>
+<p>模型较大时，可以拖动节点，或选中节点后用方向键移动。通过<strong>布局</strong>和缩放按钮调整视图。这些操作只调整画布上的显示位置和比例。</p>`],
+        ["publish", "5. 保存、校验并发布", ({ code, link }) => `
+<ol>
+  <li>点击<strong>保存草稿</strong>。在<strong>更多工具</strong>中，<strong>校验结构</strong>检查映射配置，<strong>校验数据</strong>读取源数据，检查业务键重复、边端点找不到对应账户等问题。</li>
+  <li>点击<strong>校验并发布</strong>。发布会校验当前数据，成功后显示<strong>生效</strong>版本号。按钮不可用时，按建模指引补齐映射并保存修改，再确认自己的${link("access", "发布权限")}。</li>
+  <li>打开<strong>查询</strong>，选择 <code>Transfer demo</code> 和 <strong>Cypher</strong>，粘贴并运行以下查询。</li>
+</ol>
+${code("Cypher", directTransfers.replace("$account_id", "1"))}
+<p class="note"><strong>预期结果</strong> 表格返回一行，转出方是 Alice，收款方是 Bob，金额为 12.25。</p>`],
+        ["keys", "将业务键和映射用于自己的数据", ({ code, ref }) => `
 <p>为每个节点标签选择稳定的行标识。如果账号 ID 在不同租户中重复，将租户 ID 纳入复合键。边的起点和终点列必须按相同顺序对应完整的节点键。</p>
 <p>下面的映射片段使用 PostgreSQL 中的账户表和 Parquet 中的转账表。查询可返回 <code>amount</code> 和 <code>event_time</code>，也可用它们做过滤。</p>
 ${code("YAML", mapping)}
-<p>在${ref("examples/finance.yaml", "完整示例")}中查看数据源定义，并按实际环境替换连接设置。也可以先在${link("first-model", "第一个图模型教程")}中练习并核对已知结果。</p>`],
-        ["publish", "保存、校验并发布", ({ link }) => `
-<ol>
-  <li>在<strong>图模型</strong>（Graph Models）中创建模型，${link("sources", "添加数据源")}后配置节点标签和边类型。</li>
-  <li>保存草稿并校验。如果发现列缺失、类型不匹配、键重复或边端点无法解析，检查来源表和键映射。</li>
-  <li>准备好后发布草稿，用<strong>查询</strong>（Query）在生效版本上运行一条结果已知的小查询。</li>
-</ol>`],
+<p>通过<strong>更多工具 → 查看 YAML</strong>可以查看或下载当前草稿。有建模权限时，也可以直接编辑。${ref("examples/finance.yaml", "完整示例")}包含数据源定义。</p>`],
         ["versions", "管理模型版本", ({ ref }) => `
-<p>编辑草稿时，查询仍使用已发布的版本。有发布权限的用户可在版本历史比较变更、回退到归档版本或将模型下线。模型回退会切换映射。需要恢复源数据时，请使用独立的数据快照。</p>
+<p>编辑草稿时，查询继续使用生效版本。在<strong>更多工具 → 版本历史</strong>中选择已发布版本，可与当前草稿对照。拥有发布权限的用户可以回退到已发布的映射，也可以下线模型。恢复源数据需要单独的备份。</p>
 <p>多表映射、过滤及业务时间规则见${ref("docs/reference.zh-CN.md#多表图映射与业务时间", "模型参考")}。</p>`],
       ],
     },

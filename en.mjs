@@ -4,7 +4,7 @@ import {
 } from "./examples.mjs";
 import operations from "./operations-en.mjs";
 import handbook from "./handbook-en.mjs";
-import { postgresSource } from "./handbook-examples.mjs";
+import { directTransfers, postgresSource } from "./handbook-examples.mjs";
 
 const workbenchAlt = "GraphLake workbench showing three accounts linked by transfers from the Parquet demo";
 
@@ -115,21 +115,51 @@ ${code("YAML", postgresSource)}
     },
     model: {
       title: "Model a graph",
-      description: "Turn entities into nodes and links into directed relationships, then publish a version your team can query.",
+      description: "Build an account transfer graph in the console. Connect two files, map nodes and directed edges on the canvas, then publish and verify the result.",
       sections: [
-        ["keys", "Define node and relationship keys", ({ code, ref, link }) => `
+        ["ui-start", "1. Open a new model", ({ asset, link }) => `
+<p>Follow the ${link("install", "installation guide")} to start the console, then sign in as an administrator for this walkthrough. To work on an existing model, open its name in <strong>Graph Models</strong>. Access to editing and publishing depends on your ${link("access", "model permissions")}.</p>
+<ol>
+  <li>Download ${asset("examples/transfer/accounts.csv", "accounts.csv")} and ${asset("examples/transfer/transfers.jsonl", "transfers.jsonl")}. Put both files in the running server’s catalog directory, set by <code>--catalog-dir</code>. For a separate playground, use the catalog in ${link("first-model", "the first graph tutorial")}, which already contains the files.</li>
+  <li>In <strong>Graph Models → New model</strong>, enter <code>Transfer demo</code> for <strong>Name</strong> and <code>transfer-demo</code> for <strong>Model ID</strong>. Select <strong>Continue</strong>. The ID identifies the model in API calls and client connections.</li>
+</ol>`],
+        ["ui-sources", "2. Connect the two source files", () => `
+<p>Select <strong>Add data source</strong> in the setup guide. For the second source, use <strong>More tools → Add data source</strong> in the modeling toolbar. In a saved model, use <strong>Data Sources</strong>.</p>
+<dl class="plain-list">
+  <dt>CSV accounts</dt><dd>Select <strong>Configure CSV</strong>. Set the source name to <code>people</code>. Under <strong>Table mappings</strong>, use <strong>Add CSV table</strong> to create <code>accounts</code>. Set <strong>File path</strong> to <code>accounts.csv</code>. Declare <code>id</code> as <code>Int64</code> and <code>name</code> as <code>Utf8</code>, in that order.</dd>
+  <dt>JSON Lines transfers</dt><dd>Select <strong>Configure JSON Lines</strong>. Set the source name to <code>payments</code>. Use <strong>Add JSON Lines table</strong> to create <code>transfers</code> with file path <code>transfers.jsonl</code>. Declare <code>id</code>, <code>src</code>, and <code>dst</code> as <code>Int64</code>, and <code>amount</code> as <code>Decimal128(18, 2)</code>.</dd>
+</dl>
+<p>Use <strong>Add column</strong> to enter each additional field. Leave <strong>Allow nulls</strong> cleared for both <code>id</code> columns. Select <strong>Add to draft</strong> after configuring each source. File paths refer to files on the GraphLake server.</p>`],
+        ["ui-node", "3. Map the Account node label", () => `
+<ol>
+  <li>In the modeling toolbar, select <strong>Add node</strong>. Enter <code>Account</code> and select <strong>Add</strong>.</li>
+  <li>In <strong>Configuration details</strong>, set <strong>Source table</strong> to <code>people.accounts</code> and <strong>Business key</strong> to <code>id</code>. The key must uniquely identify an account within the <code>Account</code> label.</li>
+  <li>Under <strong>Properties</strong>, select <strong>+</strong> and enter <code>name</code>. Use <strong>Browse tables and columns</strong> when you need to check a field name or type.</li>
+</ol>`],
+        ["ui-edge", "4. Draw and map the Transfer edge", ({ image }) => `
+<ol>
+  <li>Select <strong>Draw edge</strong>, then select <code>Account</code> as both the start and end label. Enter <code>Transfer</code> and select <strong>Create edge</strong>.</li>
+  <li>Set <strong>Source table</strong> to <code>payments.transfers</code>. Under <strong>Business key</strong>, use <strong>+</strong> to add <code>id</code>, the unique identifier of a transfer.</li>
+  <li>Under <strong>Endpoint mapping</strong>, enter <code>src</code> for <strong>Start</strong> and <code>dst</code> for <strong>End</strong>. The <code>id</code> shown to the right of each arrow is the matching key column on <code>Account</code>. Under <strong>Properties</strong>, add <code>amount</code>.</li>
+</ol>
+<p>The canvas shows labels and edge types. The loop means that both endpoints have the <code>Account</code> label. The values in each transfer row determine which two account records it connects.</p>
+<figure>${image("model-editor", "English GraphLake console showing the Transfer edge selected and src and dst mapped to Account.id")}<figcaption>Select a node or edge on the canvas to reopen its mappings. The <strong>Nodes</strong> and <strong>Edges</strong> toolbar lists can also take you to a specific label or edge type.</figcaption></figure>
+<p>For a larger model, drag a node or use the arrow keys to reposition it. Use <strong>Layout</strong> and the zoom controls to adjust the view. These controls change the drawing while preserving the mappings.</p>`],
+        ["publish", "5. Save, validate, and publish", ({ code, link }) => `
+<ol>
+  <li>Select <strong>Save draft</strong> to keep the mapping. In <strong>More tools</strong>, use <strong>Validate schema</strong> to check the mapping and <strong>Validate data</strong> to check the source rows. For example, check for duplicate keys or transfers whose endpoints have no matching account.</li>
+  <li>Select <strong>Validate and publish</strong>. Publishing checks the current data and shows an <strong>Active</strong> revision when it succeeds. If saving or publishing is unavailable, check the setup guide for incomplete mappings, save unsaved changes, and confirm your ${link("access", "permissions")}.</li>
+  <li>Open <strong>Query</strong>, select <code>Transfer demo</code> and <strong>Cypher</strong>, then paste and run this query.</li>
+</ol>
+${code("Cypher", directTransfers.replace("$account_id", "1"))}
+<p class="note"><strong>Expected result</strong> The table shows one row with Alice as the sender, Bob as the recipient, and 12.25 as the amount.</p>`],
+        ["keys", "Adapt keys and mappings to your data", ({ code, ref }) => `
 <p>Choose a row identifier for each node label. Include tenant identity in the key when account IDs repeat across tenants. A relationship maps its source and destination columns to the full node keys in the same order.</p>
 <p>In this mapping excerpt, <code>Account</code> rows come from PostgreSQL and <code>Transfer</code> rows come from Parquet. <code>amount</code> and <code>event_time</code> can be returned or filtered in queries.</p>
 ${code("YAML", mapping)}
-<p>See the ${ref("examples/finance.yaml", "complete example")} for the source definitions and adapt its connection details to your data. Use ${link("first-model", "the first graph tutorial")} to practice with files and a known result.</p>`],
-        ["publish", "Save, validate, and publish", ({ link }) => `
-<ol>
-  <li>Create a model in <strong>Graph Models</strong> (图模型), ${link("sources", "add data sources")}, and map the node labels and edge types.</li>
-  <li>Save the draft and validate it. If validation flags a missing column, incompatible type, duplicate key, or unresolved endpoint, review the source table and key mapping.</li>
-  <li>Publish the draft when it is ready, then use <strong>Query</strong> (查询) to run a small known-result query against the active revision.</li>
-</ol>`],
+<p>Use <strong>More tools → View YAML</strong> to inspect or download the draft, or edit it if you have modeling permission. The ${ref("examples/finance.yaml", "complete example")} includes the source definitions.</p>`],
         ["versions", "Manage model revisions", ({ ref }) => `
-<p>Query traffic uses the published version while you edit a draft. With publication rights, use version history to compare revisions, activate a saved version through rollback, or take a model offline. A model rollback changes mappings. Take separate snapshots if you also need to restore source data.</p>
+<p>Queries use the active revision while you edit. In <strong>More tools → Version history</strong>, select a published version to compare it with the current draft. A publisher can roll back to a previous published mapping or take the model offline. Restoring source data requires a separate backup.</p>
 <p>For multi-table mappings, filters, and business-time rules, see the ${ref("docs/reference.zh-CN.md#多表图映射与业务时间", "model reference")}.</p>`],
       ],
     },

@@ -19,6 +19,7 @@ export default {
 <ul class="task-list">
   <li><strong>${link("concepts", "Understand the graph model")}</strong> Learn how sources, keys, edges, and published revisions fit together.</li>
   <li><strong>${link("sources", "Connect your data")}</strong> Choose a connector, check fields, and decide whether to query directly or load a local copy.</li>
+  <li><strong>${link("model", "Model a graph in the console")}</strong> Follow the canvas walkthrough to map business keys and endpoints, then publish.</li>
   <li><strong>${link("query-recipes", "Run query recipes")}</strong> Follow paths in Cypher, summarize rows in SQL, and traverse in Gremlin.</li>
   <li><strong>${link("algorithms", "Run graph algorithms")}</strong> Compare paths, rank nodes, or identify connected groups.</li>
 </ul>`],
@@ -82,7 +83,7 @@ ${code("Shell", sampleWorkbench)}
   <li>Open <a href="http://127.0.0.1:7347/">http://127.0.0.1:7347</a> and sign in as <code>admin</code>. If the service is on another machine, forward port <code>7347</code> over SSH.</li>
   <li>In <strong>Graph Models</strong>, verify that <code>graph</code> is published. Open <strong>Query</strong>, paste the earlier Cypher, and supply <code>{"account_id":1}</code> in <strong>Query options</strong>.</li>
 </ol>
-<p>To use your own inputs, start from ${link("sources", "Connect data")}. Check key types and sample rows before you publish a mapping over production data.</p>`],
+<p>Continue with ${link("model", "the canvas walkthrough")} to build the same mapping yourself, or ${link("sources", "connect your own data")}. Check key types and sample rows before you publish a mapping over production data.</p>`],
     ],
   },
   "query-recipes": {

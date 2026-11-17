@@ -19,6 +19,7 @@ export default {
 <ul class="task-list">
   <li><strong>${link("concepts", "理解图模型")}</strong> 了解数据源、业务键、关系与发布版本之间的联系。</li>
   <li><strong>${link("sources", "接入自己的数据")}</strong> 选择连接器、查看字段，决定直接查询或加载本地副本。</li>
+  <li><strong>${link("model", "在控制台建立图模型")}</strong> 跟着画布教程配置业务键和端点，再发布模型。</li>
   <li><strong>${link("query-recipes", "运行查询示例")}</strong> 用 Cypher 查路径、用 SQL 汇总、用 Gremlin 遍历。</li>
   <li><strong>${link("algorithms", "运行图算法")}</strong> 比较路径成本、排序节点或识别连通群组。</li>
 </ul>`],
@@ -82,7 +83,7 @@ ${code("Shell", sampleWorkbench)}
   <li>打开 <a href="http://127.0.0.1:7347/">http://127.0.0.1:7347</a>，以 <code>admin</code> 登录。服务在远程主机时，通过 SSH 转发 <code>7347</code> 端口。</li>
   <li>在<strong>图模型</strong>中确认 <code>graph</code> 已发布。打开<strong>查询</strong>，粘贴前面的 Cypher，在<strong>查询选项</strong>中填入 <code>{"account_id":1}</code>。</li>
 </ol>
-<p>换成实际输入时，从${link("sources", "连接数据")}开始。先核对键的类型和样例行，再发布生产映射。</p>`],
+<p>可以继续阅读${link("model", "画布建模教程")}，手动完成同一套映射，也可以${link("sources", "连接自己的数据")}。发布生产映射前，先核对业务键的类型和样例行。</p>`],
     ],
   },
   "query-recipes": {

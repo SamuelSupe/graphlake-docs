@@ -1,0 +1,222 @@
+import {
+  cypher, download, generateDemo, graphQuery, install, mapping, mcpConfig,
+  packagesList, runDemo, start, workbench,
+} from "./examples.mjs";
+
+const workbenchAlt = "GraphLake workbench showing three accounts linked by transfers from the Parquet demo";
+
+export default {
+  ui: {
+    product: "Read-only graph analytics", overview: "Overview", docs: "Docs", language: "中文",
+    primary: "Main navigation", start: "Get started", guides: "Guides", operations: "Operations",
+    contents: "Docs navigation", onPage: "On this page", previous: "Previous", next: "Next",
+    skip: "Skip to content", copy: "Copy", copied: "Copied", copyError: "Select to copy",
+    footer: "Resources", release: "Release notes",
+  },
+  home: {
+    title: "Graph analytics<br class=\"wide-break\"> on your<br class=\"wide-break\"> existing data",
+    description: "Model relationships across databases and lakehouse tables. Query them with Cypher, SQL, or Gremlin, then explore the results in your browser.",
+    cta: "Run your first query",
+    workbenchAlt,
+    workflow: "From tables to a graph",
+    steps: [
+      ["sources", "Connect data", "Read from existing databases, warehouses, or lakehouse files. Direct queries leave source records in place."],
+      ["model", "Model relationships", "Map table keys and columns to nodes, edges, and properties. Validate a draft before publishing it."],
+      ["query", "Query and explore", "Follow multi-hop paths, expand neighbors in the workbench, or export results for downstream analysis."],
+    ],
+    cases: {
+      funds: "Trace transfers across accounts and inspect the routes that connect a sender to a recipient.",
+      dependencies: "Follow dependencies from a changed service to its downstream consumers.",
+      lineage: "Trace datasets back to their upstream tables and jobs.",
+    },
+    more: "Take GraphLake further",
+  },
+  articles: {
+    install: {
+      title: "Install on Linux",
+      description: "Set up a standalone GraphLake service on Debian 12 or a compatible glibc-based Linux host with systemd.",
+      sections: [
+        ["download", "1. Download and verify", ({ code, releasePage }) => `
+<p>Use a host with <code>sudo</code> access and glibc 2.36 or newer. The <a href="${releasePage}">v1.1.0 release</a> includes the CLI, the admin service, the built workbench, and systemd assets. Download the archive and checksum matching <code>uname -m</code>.</p>
+${packagesList("SHA-256 checksum")}
+<p>Or use the following commands in a download directory. Continue after the checksum reports <code>OK</code>. Keep the same shell for the installation steps.</p>
+${code("Shell", download)}`],
+        ["install", "2. Install the service", ({ code, link }) => `
+<p>Use these commands for a fresh installation. For an existing service, follow the ${link("deploy", "upgrade procedure")} first. If you downloaded the files manually, set <code>artifact</code> to the archive filename without <code>.tar.gz</code> and verify the checksum before continuing. The release directory holds the binaries and UI. The catalog under <code>/var/lib/graphlake</code> holds models and service state.</p>
+${code("Shell", install)}`],
+        ["start", "3. Initialize and start", ({ code }) => `
+<p>Choose the <code>admin</code> password when prompted. Initialize authentication once per catalog. Run both probes after starting the unit.</p>
+${code("Shell", start)}
+<p><code>/healthz</code> reports the running build. <code>/readyz</code> reports service readiness. If startup fails, inspect <code>sudo journalctl -u graphlake -n 80 --no-pager</code>.</p>`],
+        ["open", "4. Open the workbench", ({ code, link }) => `
+<p>Open <a href="http://127.0.0.1:7337/">http://127.0.0.1:7337</a> on the service host. From another machine, replace <code>graph-host</code> with your SSH host, run the tunnel below, and open the same URL on your computer.</p>
+${code("Shell", "ssh -N -L 7337:127.0.0.1:7337 graph-host")}
+<p>Sign in as <code>admin</code>, then create a model and ${link("sources", "add your first data source")}. For shared access, see ${link("deploy", "HTTPS and access control")}.</p>`],
+      ],
+    },
+    quickstart: {
+      title: "Quickstart",
+      description: "Run a graph query against a small Parquet dataset, then explore the results in the browser workbench.",
+      sections: [
+        ["generate", "1. Generate the demo data", ({ code }) => `
+<p>Install Git, Rust 1.95 or newer, and a C/C++ toolchain. The workbench step also requires Node.js 24. The built-in demo writes three accounts, four transfers, and a graph mapping to a temporary catalog.</p>
+${code("Shell", generateDemo)}`],
+        ["run", "2. Run a Cypher query", ({ code }) => `
+<p>In the same shell, find destinations two transfers away from account <code>10</code> in tenant <code>1</code>. The amount sums the last transfer on each matched path.</p>
+${code("Shell", runDemo)}
+<p class="note"><strong>Expected result</strong> Account <code>30</code>, <code>2</code> paths, total amount <code>600</code>.</p>`],
+        ["workbench", "3. Open the workbench", ({ code }) => `
+<p>Build the browser UI, set the local <code>admin</code> password, and start the service. The catalog's valid model is adopted on startup.</p>
+${code("Shell", workbench)}
+<p>Open <a href="http://127.0.0.1:7337/">http://127.0.0.1:7337</a> and sign in as <code>admin</code>. In <strong>Graph Models</strong> (图模型), open <code>graph</code> and go to <strong>Query</strong> (查询).</p>`],
+        ["explore", "4. Explore the transfers", ({ code, image, link }) => `
+<p>Choose Cypher, run the query below, then open the <strong>Graph</strong> (图) result tab. Select a node or relationship to inspect its properties.</p>
+${code("Cypher", graphQuery)}
+<figure>${image("workbench", workbenchAlt)}<figcaption>The transfer graph in the GraphLake workbench.</figcaption></figure>
+<p>Ready for your own data? ${link("sources", "Connect a source")} and ${link("model", "publish a graph model")}.</p>`],
+      ],
+    },
+    sources: {
+      title: "Connect data",
+      description: "Give GraphLake read access to the tables, warehouse views, or files that contain your entities and relationships.",
+      sections: [
+        ["choose", "Choose a connector", ({ ref }) => `
+<dl class="plain-list">
+  <dt>Databases</dt><dd>PostgreSQL, MySQL, MariaDB, SQLite, SQL Server, Oracle, MongoDB, DuckDB, TiDB, and OceanBase in MySQL mode.</dd>
+  <dt>Warehouses and lakehouse</dt><dd>Snowflake, BigQuery, ClickHouse, Trino, Spanner, SAP HANA, Databricks SQL, Apache Doris, StarRocks, Iceberg, and Delta Lake.</dd>
+  <dt>Files and object storage</dt><dd>CSV, JSON Lines, and Parquet. Configure S3, MinIO, OSS, TOS, COS, Azure Blob Storage, or GCS as a connection to browse and map files.</dd>
+</dl>
+<p>Oracle direct access requires Oracle Instant Client on the server. Trino can also expose SQL Server, Oracle, Hive, Hudi, MongoDB, Elasticsearch, and Redshift through configured catalogs. See the ${ref("docs/reference.zh-CN.md#图映射与连接器", "connector reference")} for configuration and supported types.</p>`],
+        ["configure", "Add a source in the workbench", () => `
+<ol>
+  <li>Open <strong>Data Sources</strong> (数据源) in the model draft and select a connector.</li>
+  <li>Enter connection settings or map file paths to table names. For credentials, specify the environment variable names configured on the GraphLake server.</li>
+  <li>Choose <strong>Add to draft</strong> (添加到草稿) and save. Browse tables and columns to confirm the fields you plan to map.</li>
+</ol>
+<p>Use credentials with read access to the intended tables and views. Paths resolve on the GraphLake server. CSV and JSON Lines need explicit column types. Parquet supplies its own schema.</p>`],
+        ["next", "Map the tables", ({ link }) => `
+<p>Identify a stable key for each entity and the columns that connect one entity to another. Continue to ${link("model", "Model a graph")}. If you want queries to use a scheduled copy of selected columns, create ${link("local-tables", "a local Parquet table")}.</p>`],
+      ],
+    },
+    model: {
+      title: "Model a graph",
+      description: "Turn entities into nodes and links into directed relationships, then publish a version your team can query.",
+      sections: [
+        ["keys", "Define node and relationship keys", ({ code, ref }) => `
+<p>Choose a row identifier for each node label. Include tenant identity in the key when account IDs repeat across tenants. A relationship maps its source and destination columns to the full node keys in the same order.</p>
+<p>In this mapping excerpt, <code>Account</code> rows come from PostgreSQL and <code>Transfer</code> rows come from Parquet. <code>amount</code> and <code>event_time</code> can be returned or filtered in queries.</p>
+${code("YAML", mapping)}
+<p>See the ${ref("examples/finance.yaml", "complete example")} for the source definitions and adapt its connection details to your data.</p>`],
+        ["publish", "Save, validate, and publish", ({ link }) => `
+<ol>
+  <li>Create a model in <strong>Graph Models</strong> (图模型), ${link("sources", "add data sources")}, and map the node labels and edge types.</li>
+  <li>Save the draft and validate it. If validation flags a missing column, incompatible type, duplicate key, or unresolved endpoint, review the source table and key mapping.</li>
+  <li>Publish the draft when it is ready, then use <strong>Query</strong> (查询) to run a small known-result query against the active revision.</li>
+</ol>`],
+        ["versions", "Manage model revisions", ({ ref }) => `
+<p>Query traffic uses the published version while you edit a draft. With publication rights, use version history to compare revisions, activate a saved version through rollback, or take a model offline. A model rollback changes mappings. Take separate snapshots if you also need to restore source data.</p>
+<p>For multi-table mappings, filters, and business-time rules, see the ${ref("docs/reference.zh-CN.md#多表图映射与业务时间", "model reference")}.</p>`],
+      ],
+    },
+    query: {
+      title: "Query and explore",
+      description: "Run read-only graph queries, inspect paths in the browser, and export the results when you need the full dataset.",
+      sections: [
+        ["run", "Run against a published model", ({ code, link }) => `
+<p>Open <strong>Query</strong> (查询), select a published model, and choose Cypher, SQL, or Gremlin. In the ${link("quickstart", "Parquet demo")}, this Cypher query summarizes two-hop transfers to each destination.</p>
+${code("Cypher", cypher)}
+<p>Use the query options to set a timeout or provide Cypher parameters. The result identifies the model revision and source versions. Check these when reproducing a result.</p>`],
+        ["graph", "Investigate the graph", ({ code }) => `
+<p>Return a path or graph objects to populate the graph view. Select a node or edge to inspect its properties. Expand a node to see its neighbors and load additional batches as needed. Use the table view for scalar results.</p>
+${code("Cypher", graphQuery)}`],
+        ["export", "Work with larger results", ({ ref }) => `
+<p>The workbench shows a bounded preview. Use cancellation for a query you no longer need. For complete results, enable full-result capture and download Arrow IPC with query and export permissions. Use filters, hop bounds, and resource limits to keep exploratory queries predictable.</p>
+<p>Applications can use HTTP, Bolt, Gremlin WebSocket, the CLI, or embedded Rust. See the ${ref("docs/reference.zh-CN.md#查询语义与资源控制", "query and protocol reference")} and the ${ref("docs/reference.zh-CN.md#整图算法", "graph algorithms reference")} for shortest paths, PageRank, and community detection.</p>`],
+      ],
+    },
+    "local-tables": {
+      title: "Local tables",
+      description: "Load selected source columns into managed Parquet and use the copy for queries that can tolerate scheduled freshness.",
+      sections: [
+        ["load", "Load and publish a copy", ({ image }) => `
+<ol>
+  <li>As an administrator, save the source configuration in a model draft, then open <strong>Local Tables</strong> (本地表).</li>
+  <li>Choose the source table and the columns needed by the model, including keys and endpoints. Create and load the copy.</li>
+  <li>When the run succeeds, add the copy to model sources. Point the mapping to <code>local_&lt;name&gt;.data</code>, validate the draft, and publish it.</li>
+</ol>
+<figure>${image("local-tables", "Local Tables panel showing a successful transfer table load and the next scheduled refresh")}<figcaption>Check copy readiness and run history before switching a mapping.</figcaption></figure>`],
+        ["refresh", "Choose a refresh strategy", () => `
+<dl class="plain-list">
+  <dt>Full refresh</dt><dd>Read the selected fields again and publish a new snapshot. Use this to reflect physical deletes and changes to keys.</dd>
+  <dt>Incremental refresh</dt><dd>Set a stable, unique, non-null key and an integer, date, or timestamp watermark. Advance the watermark on every insert and update. GraphLake rereads the watermark boundary and replaces rows by key.</dd>
+  <dt>Scheduled refresh</dt><dd>Schedule either mode, then check the last successful run and next run time. The first load is full.</dd>
+</dl>
+<p class="note"><strong>Freshness</strong> Incremental refresh reads by watermark. Reconcile deletes and late rows below the committed watermark with a full refresh.</p>`],
+        ["recovery", "Maintain the snapshot", ({ ref }) => `
+<p>A failed load before publication leaves the prior committed copy available. Back up the entire catalog, including <code>.graphlake-local/</code>. Workers reading local copies need access at the same absolute path. See the ${ref("docs/local-tables.zh-CN.md", "local tables reference")} for recovery, storage, and concurrency limits.</p>`],
+      ],
+    },
+    mcp: {
+      title: "Connect an AI client",
+      description: "Give an AI client access to published queries or authorized modeling tasks through Model Context Protocol (MCP).",
+      sections: [
+        ["enable", "Enable the service you need", () => `
+<p>In <strong>Runtime Settings → MCP services</strong> (运行配置 → MCP 服务), an administrator can enable query and modeling independently. Both default to disabled. Enable publication separately if it is required.</p>
+<dl class="plain-list">
+  <dt><code>/mcp/query</code></dt><dd>Discover visible models and published schema, then run bounded read-only queries.</dd>
+  <dt><code>/mcp/modeling</code></dt><dd>Read, validate, create, and save authorized drafts. Publication requires the publisher role and server opt-in.</dd>
+</dl>`],
+        ["connect", "Register GraphLake in your client", ({ code }) => `
+<p>Open <strong>AI</strong> in the console. Generate a personal token and store it in the client's credential configuration. Add a Streamable HTTP MCP entry for each service you need. Replace the example origin with your GraphLake HTTPS origin and provide the token in the <code>Authorization</code> header.</p>
+${code("JSON", mcpConfig)}
+<p>The token uses the owner's current model permissions and tenant scope. An administrator can issue a token for a member with MCP access. Test the connection in the AI workspace to check the authenticated identity and tool visibility.</p>`],
+        ["use", "Run your first request", ({ ref }) => `
+<p>Ask the client to list permitted models, inspect the published schema, and run a small query. For model edits, read the current draft and revision, validate changes, and review the saved draft before publishing. See the ${ref("docs/mcp.md", "MCP reference")} for role checks, token rotation, and query limits.</p>`],
+      ],
+    },
+    "use-cases": {
+      title: "Use cases",
+      description: "Start from a relationship question. The examples below show which tables to map and what to inspect in the result.",
+      sections: [
+        ["funds", "Transaction investigation", ({ code, link }) => `
+<p><strong>Question.</strong> Which accounts receive funds two transfers away from a starting account?</p>
+<p>Map accounts to <code>Account</code> nodes and transfers to <code>Transfer</code> edges with amount and event time. Use tenant-aware keys. Rank destinations by path count or amount, then inspect individual transfer paths and timestamps.</p>
+${code("Cypher", cypher)}
+<p>Run this example on the ${link("quickstart", "included Parquet dataset")}.</p>`],
+        ["dependencies", "Service impact analysis", ({ code, link }) => `
+<p><strong>Question.</strong> Which services depend on the component being changed?</p>
+<p>Map an inventory table to <code>Service</code> nodes and calls or declared dependencies to <code>DEPENDS_ON</code> edges, directed from consumer to dependency. Keep ownership and environment as properties. For this illustrative schema, the query follows incoming dependencies up to three hops from <code>payments</code>.</p>
+${code("Cypher", "MATCH p = (s:Service)-[:DEPENDS_ON*1..3]->(target:Service)\nWHERE target.name = 'payments'\nRETURN p LIMIT 100")}
+<p>See how to ${link("model", "map node and relationship keys")} before running this on your own inventory.</p>`],
+        ["lineage", "Data lineage", ({ code, link }) => `
+<p><strong>Question.</strong> Which upstream datasets contributed to a report table?</p>
+<p>Map catalog entries to <code>Dataset</code> nodes and lineage records to <code>DERIVED_FROM</code> edges, directed from output to input. Add job or pipeline identifiers as relationship properties. For this illustrative schema, explore paths up to four hops from the report.</p>
+${code("Cypher", "MATCH p = (report:Dataset)-[:DERIVED_FROM*1..4]->(:Dataset)\nWHERE report.name = 'daily_revenue'\nRETURN p LIMIT 100")}
+<p>Use ${link("query", "the graph view")} to inspect paths and share findings with dataset owners.</p>`],
+      ],
+    },
+    deploy: {
+      title: "Deploy and operate",
+      description: "Choose a runtime mode and verify service health, access, and recovery before directing clients to the deployment.",
+      sections: [
+        ["topology", "Choose a deployment mode", ({ link, ref }) => `
+<dl class="plain-list">
+  <dt>Standalone service</dt><dd>${link("install", "Install one graphlake-admin process")} for the browser, HTTP, and optional Bolt and Gremlin endpoints.</dd>
+  <dt>Distributed service</dt><dd>Use a Coordinator with private Workers for supported distributed operations. Run the same build on all nodes and provide access to the mapped data.</dd>
+  <dt>Coordinator failover</dt><dd>Use etcd for leadership, S3-compatible shared control state, and TLS ingress that probes the elected Coordinator.</dd>
+</dl>
+<p>See the ${ref("deploy/cluster.md", "cluster deployment reference")} for flags, routing, and maintenance order.</p>`],
+        ["access", "Secure the client entry point", ({ ref }) => `
+<p>For shared browser access, use an HTTPS reverse proxy and set <code>--public-url</code> to the exact browser origin. Create model-level roles for query, export, modeling, publishing, and audit. Use role-based service accounts for application drivers and scoped personal tokens for AI clients.</p>
+<p>Keep database credentials in server-side environment settings. See the ${ref("deploy/README.md", "service and client reference")} for proxy headers and protocol configuration.</p>`],
+        ["health", "Check health and data access", ({ ref }) => `
+<p>Check the build at <code>/healthz</code> and readiness at <code>/readyz</code>. Use runtime health to probe published sources and Workers, then run a known-result query through the same ingress clients use. Collect Prometheus metrics, audit events, and OpenTelemetry signals as needed.</p>
+<p>See the ${ref("deploy/monitoring.md", "monitoring reference")} for probe and telemetry setup.</p>`],
+        ["recover", "Upgrade, roll back, and recover", ({ ref }) => `
+<p>Back up the catalog and credential configuration, and keep the previous binary release. Stop the standalone service, unpack the new archive into a separate directory, switch <code>current</code> and the unit as needed, then restart. Confirm the running build, model revision, and known-result query. Rollback restores the old release and its matching catalog when needed.</p>
+<p>For off-site recovery, keep a checkpoint that binds control state, PostgreSQL and Parquet snapshots, and expected business-query results. In the target <code>/recovery</code> page, import the checkpoint and pass acceptance checks before reopening traffic. Include local tables in a separate catalog backup.</p>
+<p>See the ${ref("docs/deployment.md#upgrade-and-rollback", "upgrade guide")} and ${ref("deploy/cluster.md#绑定恢复点并开放入口", "recovery manifest reference")}.</p>`],
+      ],
+    },
+  },
+};

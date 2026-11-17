@@ -54,7 +54,8 @@ ${code("Shell flags", haFlags)}
   <dt>映射不兼容</dt><dd>根据异常位置核对表、字段、业务键及边端点类型，修正草稿后校验并发布。</dd>
   <dt>Worker 异常 / 无法连接</dt><dd>检查列出的 Worker 进程和私有网络路由。如果该 Worker 列出了不可用来源，从 Worker 所在主机核对读取权限、文件挂载和凭据。</dd>
 </dl>
-<figure>${image("ops-health", "英文 Health Checks 页面显示 Transfer demo 的两个可用来源和两个正常 Worker")}<figcaption>展开模型摘要可查看每个来源和 Worker 的检查结果。</figcaption></figure>`],
+<figure>${image("ops-health", "英文 Health Checks 页面显示 Transfer demo 的两个可用来源和两个正常 Worker")}<figcaption>展开模型摘要可查看每个来源和 Worker 的检查结果。</figcaption></figure>
+<p>节点离线时，参见<a href="../troubleshoot/#worker">Worker 排查步骤</a>。</p>`],
       ["telemetry", "配置日志和 OpenTelemetry", ({ image, ref }) => `
 <ol>
   <li>单机及未启用故障接管的 Coordinator 默认使用 catalog 中的 <code>.graphlake-telemetry.yaml</code>。为启用故障接管的 Coordinator 配置各主机本地文件，可复制随包的${ref("deploy/telemetry.yaml", "遥测配置模板")}，通过 <code>--telemetry-config /etc/graphlake/telemetry.yaml</code> 或服务环境变量 <code>GRAPHLAKE_TELEMETRY_CONFIG</code> 指定并重启。命令行参数优先。服务用户需要配置文件及其父目录的写入权限。</li>
@@ -116,7 +117,8 @@ ${code("JSON", recoveryManifest)}
   <li>填写目标站的<strong>恢复令牌</strong>并点击<strong>读取状态</strong>。在<strong>异地备份</strong>中选择<strong>恢复检查点</strong>，点击<strong>检查恢复点</strong>，核对检查点时间、表数和文件数。</li>
   <li>点击<strong>开始恢复 → 确认恢复</strong>，查看<strong>恢复进度</strong>。依次检查备份校验、文件与本地表恢复、适用时的 PostgreSQL 恢复以及控制状态导入。开始写入后若中断，使用同一个恢复点重试。</li>
 </ol>
-<figure>${image("ops-restore-target", "英文 Restore backup 对话框显示目标站 HTTPS 地址和 Open target site 按钮")}<figcaption>先打开独立的目标站，再选择并检查恢复点。</figcaption></figure>`],
+<figure>${image("ops-restore-target", "英文 Restore backup 对话框显示目标站 HTTPS 地址和 Open target site 按钮")}<figcaption>先打开独立的目标站，再选择并检查恢复点。</figcaption></figure>
+<p>备份或恢复报错时，参见<a href="../troubleshoot/#backup-restore">备份与恢复故障排查</a>。</p>`],
       ["cutover", "4. 通过验收后接入流量", ({ link }) => `
 <ol>
   <li>导入后在目标站 <code>/recovery</code> 点击<strong>校验恢复清单</strong>，核对摘要、表数、文件数和验收查询数量。</li>

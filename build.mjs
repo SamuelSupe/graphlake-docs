@@ -30,6 +30,11 @@ const screenshotHeights = {
   "ops-telemetry": 805,
   "ops-backups": 805,
   "ops-restore-target": 805,
+  "trouble-source": 805,
+  "trouble-sync": 860,
+  "trouble-query": 860,
+  "trouble-worker": 805,
+  "trouble-recovery": 805,
 };
 const connectorAssets = [
   ["postgres", "PostgreSQL"],

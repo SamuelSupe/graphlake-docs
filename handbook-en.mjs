@@ -1,3 +1,4 @@
+import troubleshoot from "./troubleshooting-en.mjs";
 import {
   boltClient, components, downloadSample, followPath, gremlinClient,
   httpClient, outgoingCounts, pageRank, route, runSample, sampleCatalog, sampleWorkbench, transferTotals,
@@ -34,7 +35,7 @@ export default {
   <li><strong>${link("cluster", "Install a cluster")}</strong> Start Workers, then configure Coordinator failover and verify ingress.</li>
   <li><strong>${link("monitoring", "Monitor a deployment")}</strong> Check model, source, and Worker health and configure logs and telemetry.</li>
   <li><strong>${link("recovery", "Back up and recover")}</strong> Create a checkpoint, restore it at a target site, and verify the result before cutover.</li>
-  <li><strong>${link("troubleshoot", "Troubleshoot an issue")}</strong> Start from the symptom and check the appropriate layer.</li>
+  <li><strong>${link("troubleshoot", "Troubleshoot an issue")}</strong> Diagnose connection, sync, query, Worker, and recovery failures.</li>
 </ul>`],
     ],
   },
@@ -206,36 +207,5 @@ ${code("Python · gremlinpython", gremlinClient)}
 <p>See the ${ref("deploy/README.md#用户与角色", "access control reference")} for legacy service-account files, enterprise login, and audit handling.</p>`],
     ],
   },
-  troubleshoot: {
-    title: "Troubleshooting",
-    description: "Use the symptom to identify the failing layer, apply a targeted fix, and check the result.",
-    sections: [
-      ["startup", "The console does not open", ({ link }) => `
-<ol>
-  <li>On the server, check <code>systemctl status graphlake</code> and <code>journalctl -u graphlake -n 80 --no-pager</code>.</li>
-  <li>Check <code>/healthz</code> for the running build and <code>/readyz</code> for readiness. If the service is ready locally, check SSH forwarding or the reverse proxy on the client path.</li>
-  <li>For an HTTPS deployment, confirm the real origin matches <code>--public-url</code> and the proxy preserves <code>Host</code> and <code>Origin</code>.</li>
-</ol>
-<p>See ${link("monitoring", "Monitor and troubleshoot")} for cluster and ingress checks.</p>`],
-      ["model", "A model is missing or cannot be published", ({ link }) => `
-<ul class="task-list">
-  <li><strong>No published revision.</strong> Open the model, validate its draft, then publish. Clients discover published models within their role.</li>
-  <li><strong>Source or column error.</strong> Browse source fields from the server. Check the process’s environment variable names, file paths, and read permissions.</li>
-  <li><strong>Duplicate key or invalid endpoint.</strong> Compare both ends of the mapping, including types, tenant columns, and component order. Run ${link("first-model", "the sample")} if you need a known-good baseline.</li>
-  <li><strong>Revision conflict.</strong> Reload the current draft or active revision and review the changes before saving or querying again.</li>
-</ul>`],
-      ["query", "A query is empty, slow, or incomplete", ({ link }) => `
-<ul class="task-list">
-  <li><strong>Empty result.</strong> Check the active revision, account and tenant filters, time scope, and direction. Reduce the query to one known key and one hop.</li>
-  <li><strong><code>503 source_unavailable</code>.</strong> Check the source in Runtime Settings → Health Checks, then verify connectivity and credentials from the GraphLake host.</li>
-  <li><strong>Timeout or budget error.</strong> Start with a selective key, bound the hop count, and return only required fields. Use <code>EXPLAIN</code> to inspect the plan before increasing a budget.</li>
-  <li><strong>Preview is truncated.</strong> Use the graph continuation or result export path for your client. Check the full-result permission for Arrow export.</li>
-  <li><strong>Source changed or neighbor session expired.</strong> Rerun the original query to create a fresh result and expand again.</li>
-</ul>
-<p>See ${link("query-recipes", "Query recipes")} for known results in all three dialects.</p>`],
-      ["freshness", "A local copy or CSR is stale", ({ link }) => `
-<p>Check the last successful load, its watermark, and whether the model actually uses the local copy. Physical deletes and rows below the published watermark can require a full reconciliation. If a CSR generation is older than the needed data, rebuild it or query the appropriate live model.</p>
-<p>Rerun a known-result query after the repair and compare the revision and source state. See ${link("local-tables", "Local tables")} and ${link("algorithms", "Graph algorithms")}.</p>`],
-    ],
-  },
+  troubleshoot,
 };

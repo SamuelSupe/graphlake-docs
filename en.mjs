@@ -110,7 +110,8 @@ ${code("Shell", syncDemoSetup)}
   <li>Choose the <strong>Source table</strong>. Read <strong>Column</strong>, <strong>Type</strong>, and <strong>Nullable</strong> in the preview. In the example, <code>id</code> and <code>updated_seq</code> are non-null <code>Int64</code> columns.</li>
   <li>If a known table is missing from the list, open <strong>Find manually</strong>. Fill in <strong>Fully qualified table name</strong> using the connector’s naming format, then select <strong>Load columns</strong>. When opening the browser from a model mapping or the local-table form, select <strong>Use this table</strong> to fill in the selected table.</li>
 </ol>
-<figure>${image("source-browser", "English source browser showing ledger.accounts and the columns id, name, and updated_seq with types and nullability")}<figcaption>Check the key, endpoint, and watermark fields before using them in a mapping or a sync job.</figcaption></figure>`],
+<figure>${image("source-browser", "English source browser showing ledger.accounts and the columns id, name, and updated_seq with types and nullability")}<figcaption>Check the key, endpoint, and watermark fields before using them in a mapping or a sync job.</figcaption></figure>
+<p>If the browse request fails, see <a href="../troubleshoot/#source">Troubleshoot a data source connection</a>.</p>`],
         ["postgres", "Connect PostgreSQL step by step", ({ code, link }) => `
 <ol>
   <li>Create a database identity that can connect and select the tables or views that the graph will use. Confirm that the GraphLake host can reach the database.</li>
@@ -188,7 +189,7 @@ ${code("Cypher", workbenchPath)}`],
   <li>To reuse the statement, change the value to <code>2</code> and run it again. The row now shows Bob sending Carol <code>25.50</code>. Set the value back to <code>1</code> and run again before the neighbor walkthrough.</li>
 </ol>
 ${code("JSON", '{"account_id":1}')}
-<p>If the query reports a parameter error, check that you entered a JSON object with double-quoted keys and that each key matches the name after <code>$</code> in the statement. The parameter field appears when Cypher is selected. Leave <strong>Timeout (ms)</strong> empty to use the server default.</p>
+<p>If the query reports a parameter error, check that you entered a JSON object with double-quoted keys and that each key matches the name after <code>$</code> in the statement. The parameter field appears when Cypher is selected. Leave <strong>Timeout (ms)</strong> empty to use the server default. See <a href="../troubleshoot/#query">Troubleshoot a query error</a> for other failure codes.</p>
 <figure>${image("query-parameters", "English Query workspace with account_id set to 1 and the Table tab showing Alice, Bob, and 12.25")}<figcaption>Enter the statement in the editor and its JSON parameters in <strong>Query options</strong>.</figcaption></figure>`],
         ["views", "Switch result views", () => `
 <p>Use the tabs above the results to inspect the query output or the published schema.</p>
@@ -235,7 +236,7 @@ ${code("JSON", '{"account_id":1}')}
         ["status", "Check sync status and load history", ({ code, image }) => `
 <p>Open <strong>Local tables and sync</strong> for the selected model and find the table by name or source. The table card shows the latest job status, rows from the latest successful load, refresh policy, next refresh, and last full reconciliation. The <strong>Copy ready</strong> count tracks tables with a usable snapshot.</p>
 <figure>${image("local-tables", "English sync panel showing the status, next refresh time, and Load history action for accounts_local")}<figcaption>Use the table card to check the schedule and open refresh settings or load history.</figcaption></figure>
-<p>Select <strong>Load history</strong> on the table card for the last 20 runs. Each entry shows the mode, trigger, status, duration, and row counts. <strong>Rows read</strong> can include rows at the watermark boundary. <strong>Total after commit</strong> is the size of the resulting copy. If a run fails, check the error on the card or in history and retry after fixing it.</p>
+<p>Select <strong>Load history</strong> on the table card for the last 20 runs. Each entry shows the mode, trigger, status, duration, and row counts. <strong>Rows read</strong> can include rows at the watermark boundary. <strong>Total after commit</strong> is the size of the resulting copy. If a run fails, read the error on the card or in history and follow the <a href="../troubleshoot/#sync">sync troubleshooting steps</a>.</p>
 <details class="example-details"><summary>Try an incremental update with the SQLite sample</summary>
 <p>After the first load shows three rows, run this command on the sample database. Select <strong>Sync now</strong> on <code>accounts_local</code> and open <strong>Load history</strong>. With the default lookback of zero, two rows are read (watermarks <code>3</code> and <code>4</code>), and the copy has three rows after commit.</p>
 ${code("Shell", syncDemoUpdate)}

@@ -110,7 +110,8 @@ ${code("Shell", syncDemoSetup)}
   <li>选择<strong>来源表</strong>，在预览中核对<strong>字段</strong>、<strong>类型</strong>和<strong>可为空</strong>。本例中 <code>id</code> 和 <code>updated_seq</code> 都是不可为空的 <code>Int64</code> 字段。</li>
   <li>列表里找不到已知表时，展开<strong>手动查找</strong>，按连接器的命名格式填入<strong>完整表名</strong>，点击<strong>读取字段</strong>。从节点映射、边映射或本地表表单打开浏览器时，可以点击<strong>使用此表</strong>带回所选表。</li>
 </ol>
-<figure>${image("source-browser", "英文来源表浏览器显示 ledger.accounts 及其三个字段的类型和可空性")}<figcaption>建模或同步前，先核对业务键、端点和水位字段。</figcaption></figure>`],
+<figure>${image("source-browser", "英文来源表浏览器显示 ledger.accounts 及其三个字段的类型和可空性")}<figcaption>建模或同步前，先核对业务键、端点和水位字段。</figcaption></figure>
+<p>浏览报错时，参见<a href="../troubleshoot/#source">数据源连接排查</a>。</p>`],
         ["postgres", "接入 PostgreSQL", ({ code, link }) => `
 <ol>
   <li>创建能连接数据库、读取目标表或视图的专用账号。先确认 GraphLake 主机可以访问数据库。</li>
@@ -189,7 +190,8 @@ ${code("Cypher", workbenchPath)}`],
 </ol>
 ${code("JSON", '{"account_id":1}')}
 <p>遇到参数错误时，检查输入是否为 JSON 对象，键名是否用双引号包裹并与语句中 <code>$</code> 后的名称一致。参数框在选择 Cypher 后显示。<strong>超时（毫秒）</strong>留空时使用服务端默认值。</p>
-<figure>${image("query-parameters", "英文查询工作台将 account_id 设为 1，表格显示 Alice、Bob 和金额 12.25")}<figcaption>在编辑器中输入查询语句，在 <strong>Query options</strong> 中填写 JSON 参数。</figcaption></figure>`],
+<figure>${image("query-parameters", "英文查询工作台将 account_id 设为 1，表格显示 Alice、Bob 和金额 12.25")}<figcaption>在编辑器中输入查询语句，在 <strong>Query options</strong> 中填写 JSON 参数。</figcaption></figure>
+<p>其他错误码和复验方法见<a href="../troubleshoot/#query">查询报错排查</a>。</p>`],
         ["views", "切换查询结果视图", () => `
 <p>通过结果区域上方的标签页查看查询结果或已发布的图结构。</p>
 <dl class="plain-list">
@@ -235,7 +237,7 @@ ${code("JSON", '{"account_id":1}')}
         ["status", "查看同步状态与加载历史", ({ code, image }) => `
 <p>进入当前模型的<strong>本地表与同步</strong>，按表名或来源找到表。卡片显示最新任务状态、最近成功行数、刷新策略、下次刷新时间和最近全量对账时间。顶部的<strong>副本已就绪</strong>统计已有可用快照的表。</p>
 <figure>${image("local-tables", "英文同步面板显示 accounts_local 的同步状态、下次刷新以及加载历史入口")}<figcaption>在表卡片上查看当次状态和下次运行时间，也可以打开刷新配置与加载历史。</figcaption></figure>
-<p>点击表卡片上的<strong>加载历史</strong>（Load history），查看最近 20 次任务的刷新方式、触发来源、状态、耗时和行数。<strong>本次读取</strong>可能包含重读的水位边界行，<strong>提交后总计</strong>是副本合并后的行数。任务失败时，在表卡片或历史中查看报错，修复后再重试。</p>
+<p>点击表卡片上的<strong>加载历史</strong>（Load history），查看最近 20 次任务的刷新方式、触发来源、状态、耗时和行数。<strong>本次读取</strong>可能包含重读的水位边界行，<strong>提交后总计</strong>是副本合并后的行数。任务失败时，在表卡片或历史中查看报错，再按<a href="../troubleshoot/#sync">同步故障排查</a>处理。</p>
 <details class="example-details"><summary>用 SQLite 样例试一次增量更新</summary>
 <p>首次加载显示三行后，在样例数据库上执行以下命令。对 <code>accounts_local</code> 点击<strong>立即同步</strong>，再打开<strong>加载历史</strong>。重读窗口为默认值零时，本次读取两行（水位 <code>3</code> 和 <code>4</code>），提交后副本共有三行。</p>
 ${code("Shell", syncDemoUpdate)}

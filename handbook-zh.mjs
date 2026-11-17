@@ -1,3 +1,4 @@
+import troubleshoot from "./troubleshooting-zh.mjs";
 import {
   boltClient, components, downloadSample, followPath, gremlinClient,
   httpClient, outgoingCounts, pageRank, route, runSample, sampleCatalog, sampleWorkbench, transferTotals,
@@ -34,7 +35,7 @@ export default {
   <li><strong>${link("cluster", "安装集群")}</strong> 启动 Worker，配置 Coordinator 故障接管并验证业务入口。</li>
   <li><strong>${link("monitoring", "监控运行状态")}</strong> 检查模型、数据源和 Worker，配置日志与遥测。</li>
   <li><strong>${link("recovery", "备份和恢复")}</strong> 创建恢复点，在目标站恢复并核对业务结果后切流。</li>
-  <li><strong>${link("troubleshoot", "定位故障")}</strong> 从症状入手，检查对应的服务、模型或查询层。</li>
+  <li><strong>${link("troubleshoot", "定位故障")}</strong> 排查数据源连接、同步、查询、Worker 和备份恢复故障。</li>
 </ul>`],
     ],
   },
@@ -206,36 +207,5 @@ ${code("Python · gremlinpython", gremlinClient)}
 <p>旧版服务账号文件、企业登录和审计说明见${ref("deploy/README.md#用户与角色", "权限管理参考")}。</p>`],
     ],
   },
-  troubleshoot: {
-    title: "故障排查",
-    description: "按症状定位服务、入口、模型或数据层问题，修复后使用已知结果复验。",
-    sections: [
-      ["startup", "控制台打不开", ({ link }) => `
-<ol>
-  <li>在服务主机检查 <code>systemctl status graphlake</code> 和 <code>journalctl -u graphlake -n 80 --no-pager</code>。</li>
-  <li>用 <code>/healthz</code> 查运行构建，使用 <code>/readyz</code> 查是否就绪。本机已就绪时，继续检查客户端路径上的 SSH 转发或反向代理。</li>
-  <li>使用 HTTPS 时，确认实际源地址与 <code>--public-url</code> 一致，并保留 <code>Host</code> 和 <code>Origin</code> 请求头。</li>
-</ol>
-<p>集群和业务入口的探测见${link("monitoring", "监控与排障")}。</p>`],
-      ["model", "找不到模型或发布失败", ({ link }) => `
-<ul class="task-list">
-  <li><strong>没有发布版本。</strong> 打开模型，校验并发布草稿。客户端按自身角色发现已发布模型。</li>
-  <li><strong>数据源或列错误。</strong> 从服务端浏览来源字段，检查进程环境变量名、文件路径和读取权限。</li>
-  <li><strong>键重复或边端点错误。</strong> 对比映射两端的键类型、租户列和复合键顺序。可先运行${link("first-model", "小样例")}确认基础流程。</li>
-  <li><strong>版本冲突。</strong> 重新读取当前草稿或生效版本，核对变更后再保存或查询。</li>
-</ul>`],
-      ["query", "查询为空、超时或结果不完整", ({ link }) => `
-<ul class="task-list">
-  <li><strong>结果为空。</strong> 核对生效版本、账户和租户过滤、时间范围及边方向。把查询缩小到一个已知键和一跳关系。</li>
-  <li><strong><code>503 source_unavailable</code>。</strong> 在运行配置的健康检查中查看来源结果，再从 GraphLake 主机核对连通性和读取凭据。</li>
-  <li><strong>超时或超过预算。</strong> 从选择性较好的键开始，限制跳数，仅返回用到的字段。先用 <code>EXPLAIN</code> 检查计划，再决定是否增加预算。</li>
-  <li><strong>预览截断。</strong> 按客户端能力继续加载图批次或导出结果。需要完整 Arrow 时，核对权限和结果快照状态。</li>
-  <li><strong>来源已变更或邻域会话过期。</strong> 重跑原查询创建新结果，再展开节点。</li>
-</ul>
-<p>三种语言的已知结果见${link("query-recipes", "查询示例")}。</p>`],
-      ["freshness", "本地表或 CSR 数据落后", ({ link }) => `
-<p>检查最后一次成功加载及其水位，确认发布模型确实使用本地副本。源表物理删除和低于水位的迟到行，可能需要全量对账。CSR 代次过旧时，重新构建或查询合适的在线模型。</p>
-<p>修复后运行已知结果的查询，比较实际使用的模型版本和来源状态。参见${link("local-tables", "本地表与同步")}和${link("algorithms", "图算法")}。</p>`],
-    ],
-  },
+  troubleshoot,
 };

@@ -54,7 +54,8 @@ ${code("Shell flags", haFlags)}
   <dt>Incompatible mapping</dt><dd>Use the reported table, field, or mapping location to check columns, business keys, and endpoint types. Correct the draft, validate it, and publish.</dd>
   <dt>Worker unavailable / Connection failed</dt><dd>Check the listed Worker process and its private network route. If the Worker identifies a source, check access to that source from the Worker, including file mounts and credentials.</dd>
 </dl>
-<figure>${image("ops-health", "English Health Checks tab listing the Transfer demo model, two available data sources, and two healthy Workers")}<figcaption>Expand the model’s summary to see the individual source and Worker results.</figcaption></figure>`],
+<figure>${image("ops-health", "English Health Checks tab listing the Transfer demo model, two available data sources, and two healthy Workers")}<figcaption>Expand the model’s summary to see the individual source and Worker results.</figcaption></figure>
+<p>For an offline node, see <a href="../troubleshoot/#worker">Troubleshoot a Worker</a>.</p>`],
       ["telemetry", "Configure logs and OpenTelemetry", ({ image, ref }) => `
 <ol>
   <li>Standalone instances and Coordinators without failover use <code>.graphlake-telemetry.yaml</code> in the catalog by default. For each Coordinator with failover, specify a host-local configuration file. You can copy the packaged ${ref("deploy/telemetry.yaml", "telemetry template")} and pass <code>--telemetry-config /etc/graphlake/telemetry.yaml</code> or set <code>GRAPHLAKE_TELEMETRY_CONFIG</code> before restarting. The flag takes precedence. The service user needs write access to the file and parent directory to save changes.</li>
@@ -116,7 +117,8 @@ ${code("JSON", recoveryManifest)}
   <li>Enter the target's <strong>Recovery token</strong> and select <strong>Read status</strong>. Under <strong>Offsite backups</strong>, choose a <strong>Recovery checkpoint</strong> from the target inbox and select <strong>Check recovery point</strong>. Review the checkpoint time and table and file counts.</li>
   <li>Select <strong>Start restore → Confirm restore</strong> and follow <strong>Restore progress</strong>. The console shows backup verification, file and local-table restore, PostgreSQL restore when applicable, and control-state import. If import stops after writing began, retry with the same checkpoint.</li>
 </ol>
-<figure>${image("ops-restore-target", "English Restore backup dialog showing the target site HTTPS address and the Open target site button")}<figcaption>Open the isolated target site before selecting and checking a recovery point.</figcaption></figure>`],
+<figure>${image("ops-restore-target", "English Restore backup dialog showing the target site HTTPS address and the Open target site button")}<figcaption>Open the isolated target site before selecting and checking a recovery point.</figcaption></figure>
+<p>If a backup or restore phase fails, follow the <a href="../troubleshoot/#backup-restore">backup and recovery troubleshooting steps</a>.</p>`],
       ["cutover", "4. Pass acceptance and reopen traffic", ({ link }) => `
 <ol>
   <li>On the target <code>/recovery</code> page after import, select <strong>Verify recovery manifest</strong>. Check the digest match and the table, file, and verification query counts.</li>

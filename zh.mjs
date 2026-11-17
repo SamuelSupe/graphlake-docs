@@ -1,5 +1,5 @@
 import {
-  cypher, download, generateDemo, graphQuery, install, mapping, mcpConfig,
+  cyberInvestigation, cyberParameters, cypher, download, generateDemo, graphQuery, install, mapping, mcpConfig,
   packagesList, release, runDemo, start, workbench,
 } from "./examples.mjs";
 import operations from "./operations-zh.mjs";
@@ -10,12 +10,12 @@ export default {
   ui: {
     product: "只读图分析", overview: "产品概览", docs: "文档", language: "English",
     primary: "主导航", start: "入门", guides: "使用指南", operations: "运维",
-    contents: "文档导航", onPage: "本页目录", previous: "上一篇", next: "下一篇",
+    breadcrumb: "当前位置", contents: "文档导航", onPage: "本页目录", previous: "上一篇", next: "下一篇",
     skip: "跳转到正文", copy: "复制", copied: "已复制", copyError: "请手动复制",
     footer: "资源", release: "发行说明",
   },
   home: {
-    title: "在现有数据上<br class=\"wide-break\">做图分析",
+    title: "在现有数据上<br class=\"wide-break\"><span class=\"hero-accent\">做图分析</span>",
     description: "将数据库和湖仓表中的实体与关系建成图，用 Cypher、SQL 或 Gremlin 查询，并在浏览器中探索结果。",
     cta: "运行第一条查询",
     workbenchAlt,
@@ -27,6 +27,7 @@ export default {
     ],
     cases: {
       funds: "追踪账户间的转账，查看资金从发起方流向接收方的路径。",
+      "cyber-investigation": "从登录告警出发，关联同一会话的进程启动与网络连接。",
       dependencies: "从待变更的服务出发，查找依赖它的下游服务。",
       lineage: "从报表追溯上游数据集和生成它们的任务。",
     },
@@ -188,6 +189,13 @@ ${code("JSON", mcpConfig)}
 <p>把账户映射成 <code>Account</code> 节点，把转账映射成带金额和时间的 <code>Transfer</code> 边。使用包含租户的键，按路径数或金额找出重点账户，再检查每条转账路径和时间。</p>
 ${code("Cypher", cypher)}
 <p>这条查询可在${link("quickstart", "内置 Parquet 示例")}中运行。</p>`],
+        ["cyber-investigation", "安全事件调查", ({ code, link }) => `
+<p><strong>问题</strong> 登录告警指向某个账号。该会话启动了哪些进程，事件时间窗口内这些进程连接了哪些端点？</p>
+<p>用登录日志映射 <code>Identity → Host</code>，用终端进程日志映射 <code>Host → Process</code>，用网络连接记录映射 <code>Process → NetworkEndpoint</code>。账号和主机使用包含租户的键，进程使用可区分 PID 重用的实例标识。每条边保留源事件 ID 和 UTC 毫秒时间戳，登录与进程启动边映射同一主机范围内的会话标识。</p>
+<p>发布模型后执行下方 Cypher 查询，在<strong>查询选项</strong>中填入告警的账号和时间窗口。</p>
+${code("Cypher", cyberInvestigation)}
+${code("JSON", cyberParameters)}
+<p>在${link("query", "图视图")}打开返回路径，选择边取得源事件 ID，再回查原始日志，核对账号、进程和目标端点。</p>`],
         ["dependencies", "服务变更影响分析", ({ code, link }) => `
 <p><strong>问题</strong> 哪些服务依赖即将变更的组件？</p>
 <p>把服务清单映射为 <code>Service</code> 节点，把调用或声明的依赖映射为从调用方指向被依赖方的 <code>DEPENDS_ON</code> 边，保留归属团队和环境属性。以下查询使用示例模型查找距 <code>payments</code> 最多三跳的依赖路径。</p>

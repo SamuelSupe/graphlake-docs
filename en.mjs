@@ -1,5 +1,5 @@
 import {
-  cypher, download, generateDemo, graphQuery, install, mapping, mcpConfig,
+  cyberInvestigation, cyberParameters, cypher, download, generateDemo, graphQuery, install, mapping, mcpConfig,
   packagesList, release, runDemo, start, workbench,
 } from "./examples.mjs";
 import operations from "./operations-en.mjs";
@@ -10,12 +10,12 @@ export default {
   ui: {
     product: "Read-only graph analytics", overview: "Overview", docs: "Docs", language: "中文",
     primary: "Main navigation", start: "Get started", guides: "Guides", operations: "Operations",
-    contents: "Docs navigation", onPage: "On this page", previous: "Previous", next: "Next",
+    breadcrumb: "Breadcrumb", contents: "Docs navigation", onPage: "On this page", previous: "Previous", next: "Next",
     skip: "Skip to content", copy: "Copy", copied: "Copied", copyError: "Select to copy",
     footer: "Resources", release: "Release notes",
   },
   home: {
-    title: "Graph analytics<br class=\"wide-break\"> on your<br class=\"wide-break\"> existing data",
+    title: "Graph analytics<br class=\"wide-break\"> on your<br class=\"wide-break\"> <span class=\"hero-accent\">existing data</span>",
     description: "Model relationships across databases and lakehouse tables. Query them with Cypher, SQL, or Gremlin, then explore the results in your browser.",
     cta: "Run your first query",
     workbenchAlt,
@@ -27,6 +27,7 @@ export default {
     ],
     cases: {
       funds: "Trace transfers across accounts and inspect the routes that connect a sender to a recipient.",
+      "cyber-investigation": "Correlate a sign-in alert with processes and network connections in the same session.",
       dependencies: "Follow dependencies from a changed service to its downstream consumers.",
       lineage: "Trace datasets back to their upstream tables and jobs.",
     },
@@ -188,6 +189,13 @@ ${code("JSON", mcpConfig)}
 <p>Map accounts to <code>Account</code> nodes and transfers to <code>Transfer</code> edges with amount and event time. Use tenant-aware keys. Rank destinations by path count or amount, then inspect individual transfer paths and timestamps.</p>
 ${code("Cypher", cypher)}
 <p>Run this example on the ${link("quickstart", "included Parquet dataset")}.</p>`],
+        ["cyber-investigation", "Cyber investigation", ({ code, link }) => `
+<p><strong>Question.</strong> A sign-in alert names an account. Which processes started in the matching session, and what endpoints did they contact during the incident window?</p>
+<p>Map sign-in logs to <code>Identity → Host</code>, endpoint process telemetry to <code>Host → Process</code>, and network events to <code>Process → NetworkEndpoint</code>. Use tenant-scoped identity and host keys, and a process instance ID that distinguishes reused PIDs. Keep the originating event ID and UTC epoch milliseconds on each edge. Map the same host-scoped session identifier on sign-ins and process starts.</p>
+<p>In the published model, run this Cypher query. Supply the alert's account and time window in <strong>Query options</strong>.</p>
+${code("Cypher", cyberInvestigation)}
+${code("JSON", cyberParameters)}
+<p>Open the returned paths in ${link("query", "the graph view")} and select an edge to find the source event ID. Verify the account, process, and destination in the original telemetry before recording a finding.</p>`],
         ["dependencies", "Service impact analysis", ({ code, link }) => `
 <p><strong>Question.</strong> Which services depend on the component being changed?</p>
 <p>Map an inventory table to <code>Service</code> nodes and calls or declared dependencies to <code>DEPENDS_ON</code> edges, directed from consumer to dependency. Keep ownership and environment as properties. For this illustrative schema, the query follows incoming dependencies up to three hops from <code>payments</code>.</p>

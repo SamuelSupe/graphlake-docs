@@ -63,6 +63,21 @@ cargo run --locked --features admin --bin graphlake-admin -- \\
 export const graphQuery = `MATCH p = (:Account)-[:Transfer]->(:Account)
 RETURN p`;
 
+export const cyberInvestigation = `MATCH p = (i:Identity)-[s:SIGNED_IN_TO]->(h:Host)
+          -[r:STARTED_PROCESS]->(proc:Process)-[n:CONNECTED_TO]->(:NetworkEndpoint)
+WHERE i.tenant_id = $tenant_id AND i.account_id = $account_id
+  AND r.session_id = s.session_id
+  AND s.event_time_ms >= $from_ms AND n.event_time_ms < $to_ms
+  AND r.event_time_ms >= s.event_time_ms AND n.event_time_ms >= r.event_time_ms
+RETURN p LIMIT 100`;
+
+export const cyberParameters = JSON.stringify({
+  tenant_id: 1,
+  account_id: "acct-42",
+  from_ms: 1740787200000,
+  to_ms: 1740790800000,
+}, null, 2);
+
 export const mapping = `nodes:
   Account:
     source: crm.public.accounts

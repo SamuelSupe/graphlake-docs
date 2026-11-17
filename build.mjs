@@ -68,8 +68,13 @@ function renderPage(locale, slug) {
         <nav class="guide-menu" id="guide-menu" aria-label="${ui.contents}">${navGroups()}</nav>
       </div>
       <main class="doc" id="main" tabindex="-1">
-        <h1>${article.title}</h1>
-        <p class="lead">${article.description}</p>
+        <header class="doc-heading">
+          <nav class="breadcrumb" aria-label="${ui.breadcrumb}">
+            <ol><li>${link("", ui.docs)}</li><li><a href="./" aria-current="page">${article.title}</a></li></ol>
+          </nav>
+          <h1>${article.title}</h1>
+          <p class="lead">${article.description}</p>
+        </header>
         <details class="inline-outline"><summary>${ui.onPage}</summary>${sectionLinks}</details>
         ${sections.map(([id, heading, body]) => `<section class="doc-section" aria-labelledby="${id}"><h2 id="${id}">${heading}</h2>${body(context)}</section>`).join("")}
         <nav class="pagination" aria-label="${ui.contents}">
@@ -82,32 +87,42 @@ function renderPage(locale, slug) {
   }
 
   function landingPage() {
-    return `<main class="shell landing" id="main" tabindex="-1">
-      <section class="hero" aria-labelledby="overview">
-        <div class="hero-copy">
-          <h1 id="overview">${home.title}</h1>
-          <p>${home.description}</p>
-          <div class="hero-actions">
-            <a class="button primary" href="${href("quickstart")}">${home.cta}</a>
-            <a class="button secondary" href="${href("install")}">${articles.install.title}</a>
+    return `<main class="landing" id="main" tabindex="-1">
+      <section class="hero-band" aria-labelledby="overview">
+        <div class="shell hero">
+          <div class="hero-copy">
+            <h1 id="overview">${home.title}</h1>
+            <p>${home.description}</p>
+            <div class="hero-actions">
+              <a class="button primary" href="${href("quickstart")}">${home.cta}${svg("arrow")}</a>
+              <a class="button secondary" href="${href("install")}">${articles.install.title}</a>
+            </div>
           </div>
+          <figure class="hero-visual">${image("workbench", home.workbenchAlt, true)}</figure>
         </div>
-        <figure class="hero-visual">${image("workbench", home.workbenchAlt, true)}</figure>
       </section>
-      <ul class="connectors" aria-label="${articles.sources.title}">
-        ${connectorAssets.map(([asset, name]) => `<li><a href="${href("sources")}"><img src="${assets}${asset}.svg" alt="" width="34" height="34">${name}</a></li>`).join("")}
-      </ul>
-      <section class="landing-section" aria-labelledby="workflow">
-        <h2 id="workflow">${home.workflow}</h2>
-        <div class="step-grid">${home.steps.map(([page, title, body]) => `<div class="step">${svg(page)}<div><h3>${link(page, title)}</h3><p>${body}</p></div></div>`).join("")}</div>
-      </section>
-      <section class="landing-section use-cases" aria-labelledby="cases">
-        <h2 id="cases">${articles["use-cases"].title}</h2>
-        <div class="case-grid">${articles["use-cases"].sections.map(([id, title]) => `<div class="case"><h3><a href="${href("use-cases")}#${id}">${title}${svg("arrow")}</a></h3><p>${home.cases[id]}</p></div>`).join("")}</div>
-      </section>
-      <section class="landing-section pathways" aria-labelledby="guides">
-        <h2 id="guides">${home.more}</h2>
-        <ul>${["local-tables", "mcp", "cluster"].map((page) => `<li>${link(page)}${svg("arrow")}</li>`).join("")}</ul>
+      <div class="connector-band">
+        <div class="shell">
+          <ul class="connectors" aria-label="${articles.sources.title}">
+            ${connectorAssets.map(([asset, name]) => `<li><a href="${href("sources")}"><img src="${assets}${asset}.svg" alt="" width="34" height="34">${name}</a></li>`).join("")}
+          </ul>
+        </div>
+      </div>
+      <div class="shell">
+        <section class="landing-section" aria-labelledby="workflow">
+          <h2 id="workflow">${home.workflow}</h2>
+          <div class="step-grid">${home.steps.map(([page, title, body]) => `<div class="step"><h3>${link(page, `${svg(page)}${title}`)}</h3><p>${body}</p></div>`).join("")}</div>
+        </section>
+        <section class="landing-section use-cases" aria-labelledby="cases">
+          <h2 id="cases">${articles["use-cases"].title}</h2>
+          <ul class="case-list">${articles["use-cases"].sections.map(([id, title]) => `<li><a class="case" href="${href("use-cases")}#${id}"><div><h3>${title}</h3><p>${home.cases[id]}</p></div>${svg("arrow")}</a></li>`).join("")}</ul>
+        </section>
+      </div>
+      <section class="pathways" aria-labelledby="guides">
+        <div class="shell landing-section">
+          <h2 id="guides">${home.more}</h2>
+          <ul>${["local-tables", "mcp", "cluster"].map((page) => `<li>${link(page)}</li>`).join("")}</ul>
+        </div>
       </section>
     </main>`;
   }

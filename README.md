@@ -34,3 +34,4 @@ npx --yes wrangler@4.163.0 pages deploy dist --project-name graphlake-docs --bra
 - Edit corresponding English and Chinese guides together. Operations guides live in `operations-en.mjs` and `operations-zh.mjs`. Keep the section IDs and their ordering matched so language switching preserves the section.
 - Keep commands and version-specific download URLs in `examples.mjs`. Check them against the release artifacts before updating the documented version.
 - `assets/` holds the site's styles, client script, and public product screenshots. The workbench and local-table screenshots show the English GraphLake v1.1.1 console with the Parquet example. The connector artwork and its license come from `web/src/assets/connectors/`.
+- The home page uses `assets/graph-background.webp` for the decorative artwork and serves Geist and Geist Mono locally. Their license is in `assets/LICENSE-geist.txt`.

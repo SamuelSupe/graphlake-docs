@@ -8,9 +8,10 @@ const locales = { en, "zh-CN": zh };
 const groups = [
   ["start", ["", "install", "quickstart"]],
   ["guides", ["sources", "model", "query", "local-tables", "mcp", "use-cases"]],
-  ["operations", ["deploy"]],
+  ["operations", ["deploy", "cluster", "monitoring", "recovery"]],
 ];
 const pages = groups.flatMap(([, slugs]) => slugs);
+const screenshotHeights = { workbench: 948, "local-tables": 805 };
 const connectorAssets = [
   ["postgres", "PostgreSQL"],
   ["parquet", "Parquet"],
@@ -47,7 +48,7 @@ function renderPage(locale, slug) {
   const link = (page, label = articles[page]?.title ?? ui.overview) => `<a href="${href(page)}">${label}</a>`;
   const ref = (path, label) => `<a href="${reference}/${path}">${label}</a>`;
   const code = (language, value) => `<div class="code-block"><div class="code-head"><span>${language}</span><button type="button" class="copy" data-copied="${ui.copied}" data-error="${ui.copyError}" hidden>${ui.copy}</button><span class="sr-only" role="status"></span></div><pre tabindex="0"><code>${escape(value)}</code></pre></div>`;
-  const image = (name, alt, eager = false) => `<a class="screenshot" href="${assets}${name}.jpg"><img src="${assets}${name}.jpg" width="1512" height="861" alt="${escape(alt)}"${eager ? ' fetchpriority="high"' : ' loading="lazy"'}></a>`;
+  const image = (name, alt, eager = false) => `<a class="screenshot" href="${assets}${name}.jpg"><img src="${assets}${name}.jpg" width="1512" height="${screenshotHeights[name]}" alt="${escape(alt)}"${eager ? ' fetchpriority="high"' : ' loading="lazy"'}></a>`;
   const context = { link, ref, code, image, releasePage };
 
   function navGroups() {
@@ -106,7 +107,7 @@ function renderPage(locale, slug) {
       </section>
       <section class="landing-section pathways" aria-labelledby="guides">
         <h2 id="guides">${home.more}</h2>
-        <ul>${["local-tables", "mcp", "deploy"].map((page) => `<li>${link(page)}${svg("arrow")}</li>`).join("")}</ul>
+        <ul>${["local-tables", "mcp", "cluster"].map((page) => `<li>${link(page)}${svg("arrow")}</li>`).join("")}</ul>
       </section>
     </main>`;
   }
@@ -165,4 +166,4 @@ await Promise.all(Object.keys(locales).flatMap((locale) => pages.map(async (slug
   await mkdir(target, { recursive: true });
   await writeFile(new URL("index.html", target), renderPage(locale, slug));
 })));
-console.log(`Built ${pages.length * Object.keys(locales).length} pages in docs-site/dist/`);
+console.log(`Built ${pages.length * Object.keys(locales).length} pages in dist/`);

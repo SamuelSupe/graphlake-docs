@@ -1,7 +1,8 @@
 import {
   cypher, download, generateDemo, graphQuery, install, mapping, mcpConfig,
-  packagesList, runDemo, start, workbench,
+  packagesList, release, runDemo, start, workbench,
 } from "./examples.mjs";
+import operations from "./operations-zh.mjs";
 
 const workbenchAlt = "GraphLake 查询工作台，展示 Parquet 示例中的三个账户及其转账关系";
 
@@ -37,7 +38,7 @@ export default {
       description: "在 Debian 12 或兼容的 glibc Linux 主机上通过 systemd 运行 GraphLake 单机服务。",
       sections: [
         ["download", "1. 下载并校验", ({ code, releasePage }) => `
-<p>准备具备 <code>sudo</code> 权限、glibc 2.36 或更高版本的主机。<a href="${releasePage}">v1.1.0 发行包</a>包含命令行工具、管理服务、已构建的工作台和 systemd 配置。运行 <code>uname -m</code> 确认架构，下载对应的压缩包和校验文件。</p>
+<p>准备具备 <code>sudo</code> 权限、glibc 2.36 或更高版本的主机。<a href="${releasePage}">${release} 发行包</a>包含命令行工具、管理服务、已构建的工作台和 systemd 配置。运行 <code>uname -m</code> 确认架构，下载对应的压缩包和校验文件。</p>
 ${packagesList("SHA-256 校验文件")}
 <p>也可以在下载目录执行以下命令。校验输出 <code>OK</code> 后，在同一个终端会话继续安装。</p>
 ${code("Shell", download)}`],
@@ -154,6 +155,10 @@ ${code("Cypher", graphQuery)}`],
 <p class="note"><strong>数据新鲜度</strong> 增量刷新按水位读取。源表删除和低于已提交水位的迟到数据，需用全量刷新对账。</p>`],
         ["recovery", "维护快照", ({ ref }) => `
 <p>加载在发布前失败时，上一份已提交副本仍可读取。备份完整 catalog，包括 <code>.graphlake-local/</code>。Worker 读取副本时必须能访问同一绝对路径。恢复、存储和并发限制见${ref("docs/local-tables.zh-CN.md", "本地表参考")}。</p>`],
+        ["managed", "在 HA 集群使用托管快照", ({ code, link }) => `
+<p>在${link("cluster", "启用 Coordinator 故障接管的集群")}中，通过共享集群配置开启托管本地表。Coordinator 和 Worker 使用同一 etcd 命名空间与 S3 兼容存储前缀，Worker 可直接从对象存储读取托管快照。</p>
+${code("YAML", "managed_local_tables: true\nlocal_snapshot_retention_seconds: 86400\nlocal_snapshot_gc_grace_seconds: 300")}
+<p>新建并加载托管表，将模型切换到 <code>local-table://&lt;表 UUID&gt;</code> 引用并发布。迁移期间已有映射可继续读取文件副本。GraphLake 回收符合条件的旧代次，并保留查询或备份仍在使用的快照。桶生命周期规则适用于未完成的分段上传和非当前对象版本，活跃对象由 GraphLake 管理。</p>`],
       ],
     },
     mcp: {
@@ -195,27 +200,28 @@ ${code("Cypher", "MATCH p = (report:Dataset)-[:DERIVED_FROM*1..4]->(:Dataset)\nW
 <p>在${link("query", "图视图")}检查每条路径，与数据集负责人核实结果。</p>`],
       ],
     },
+    ...operations,
     deploy: {
       title: "部署与运维",
       description: "选择部署方式，并在接入业务流量前验证服务健康、访问权限和恢复流程。",
       sections: [
-        ["topology", "选择部署方式", ({ link, ref }) => `
+        ["topology", "选择部署方式", ({ link }) => `
 <dl class="plain-list">
   <dt>单机服务</dt><dd>${link("install", "安装一个 graphlake-admin 进程")}，提供浏览器、HTTP 及可选的 Bolt、Gremlin 入口。</dd>
   <dt>分布式服务</dt><dd>使用 Coordinator 和私有 Worker 执行受支持的分布式操作。各节点保持相同构建版本，并能访问映射数据。</dd>
   <dt>Coordinator 故障接管</dt><dd>使用 etcd 选主、S3 兼容存储共享控制状态，在 TLS 入口探测当选的 Coordinator。</dd>
 </dl>
-<p>启动参数、路由和维护顺序见${ref("deploy/cluster.md", "集群部署参考")}。</p>`],
+<p>配置、启动、HA 和验收步骤见${link("cluster", "集群安装指南")}。</p>`],
         ["access", "配置入口与权限", ({ ref }) => `
 <p>多人使用浏览器时，配置 HTTPS 反向代理，把 <code>--public-url</code> 设置为浏览器使用的确切源地址。按模型分配查询、导出、建模、发布和审计权限。应用驱动使用角色化服务账号，AI 客户端使用受权限约束的个人令牌。</p>
 <p>数据库凭据保存在服务端环境配置。代理请求头和各协议的配置见${ref("deploy/README.md", "服务与客户端参考")}。</p>`],
-        ["health", "检查健康与数据访问", ({ ref }) => `
+        ["health", "检查健康与数据访问", ({ link }) => `
 <p>通过 <code>/healthz</code> 查看运行构建，使用 <code>/readyz</code> 检查就绪状态。在运行健康界面探测已发布模型的来源和 Worker，并通过业务入口运行结果已知的查询。按需采集 Prometheus 指标、审计事件和 OpenTelemetry 信号。</p>
-<p>探测及遥测配置见${ref("deploy/monitoring.md", "监控参考")}。</p>`],
-        ["recover", "升级、回退与恢复", ({ ref }) => `
+<p>探测及遥测配置见${link("monitoring", "监控指南")}。</p>`],
+        ["recover", "升级、回退与恢复", ({ link, ref }) => `
 <p>备份 catalog 和凭据配置，保留旧程序。停止单机服务，把新发行包解压到独立目录，按需切换 <code>current</code> 与 systemd 单元后启动。检查运行版本、模型版本和已知查询；回退时切回旧程序，必要时恢复配套的 catalog。</p>
-<p>异地恢复点应绑定控制状态、PostgreSQL 和 Parquet 快照及预期查询结果。在目标站点的 <code>/recovery</code> 页面导入恢复点，通过验收后再接入流量。本地表随 catalog 单独备份。</p>
-<p>详细步骤见${ref("docs/deployment.md#upgrade-and-rollback", "升级指南")}与${ref("deploy/cluster.md#绑定恢复点并开放入口", "恢复清单参考")}。</p>`],
+<p>异地恢复点应绑定控制状态、PostgreSQL 和 Parquet 快照及预期查询结果。在目标站点的 <code>/recovery</code> 页面导入恢复点，通过验收后再接入流量。保留控制归档引用的本地表文件。单机部署另行备份 catalog。</p>
+<p>详细步骤见${ref("docs/deployment.md#upgrade-and-rollback", "升级指南")}与${link("recovery", "备份与恢复指南")}。</p>`],
       ],
     },
   },

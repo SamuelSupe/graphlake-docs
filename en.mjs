@@ -1,7 +1,8 @@
 import {
   cypher, download, generateDemo, graphQuery, install, mapping, mcpConfig,
-  packagesList, runDemo, start, workbench,
+  packagesList, release, runDemo, start, workbench,
 } from "./examples.mjs";
+import operations from "./operations-en.mjs";
 
 const workbenchAlt = "GraphLake workbench showing three accounts linked by transfers from the Parquet demo";
 
@@ -37,7 +38,7 @@ export default {
       description: "Set up a standalone GraphLake service on Debian 12 or a compatible glibc-based Linux host with systemd.",
       sections: [
         ["download", "1. Download and verify", ({ code, releasePage }) => `
-<p>Use a host with <code>sudo</code> access and glibc 2.36 or newer. The <a href="${releasePage}">v1.1.0 release</a> includes the CLI, the admin service, the built workbench, and systemd assets. Download the archive and checksum matching <code>uname -m</code>.</p>
+<p>Use a host with <code>sudo</code> access and glibc 2.36 or newer. The <a href="${releasePage}">${release} release</a> includes the CLI, the admin service, the built workbench, and systemd assets. Download the archive and checksum matching <code>uname -m</code>.</p>
 ${packagesList("SHA-256 checksum")}
 <p>Or use the following commands in a download directory. Continue after the checksum reports <code>OK</code>. Keep the same shell for the installation steps.</p>
 ${code("Shell", download)}`],
@@ -154,6 +155,10 @@ ${code("Cypher", graphQuery)}`],
 <p class="note"><strong>Freshness</strong> Incremental refresh reads by watermark. Reconcile deletes and late rows below the committed watermark with a full refresh.</p>`],
         ["recovery", "Maintain the snapshot", ({ ref }) => `
 <p>A failed load before publication leaves the prior committed copy available. Back up the entire catalog, including <code>.graphlake-local/</code>. Workers reading local copies need access at the same absolute path. See the ${ref("docs/local-tables.zh-CN.md", "local tables reference")} for recovery, storage, and concurrency limits.</p>`],
+        ["managed", "Use shared managed snapshots in HA", ({ code, link }) => `
+<p>In a ${link("cluster", "cluster with Coordinator failover")}, enable managed local tables in the shared cluster configuration. The Coordinators and Workers use the same etcd namespace and S3-compatible storage prefix. This lets Workers read managed snapshots from object storage.</p>
+${code("YAML", "managed_local_tables: true\nlocal_snapshot_retention_seconds: 86400\nlocal_snapshot_gc_grace_seconds: 300")}
+<p>Create and load a new managed table, then switch the model to the <code>local-table://&lt;table UUID&gt;</code> reference and publish. Existing mappings can keep reading their file-backed copies during the transition. GraphLake reclaims eligible old generations and retains snapshots held by active queries or backups. Apply bucket lifecycle rules to incomplete uploads and noncurrent object versions. Keep live object retention under GraphLake's control.</p>`],
       ],
     },
     mcp: {
@@ -195,27 +200,28 @@ ${code("Cypher", "MATCH p = (report:Dataset)-[:DERIVED_FROM*1..4]->(:Dataset)\nW
 <p>Use ${link("query", "the graph view")} to inspect paths and share findings with dataset owners.</p>`],
       ],
     },
+    ...operations,
     deploy: {
       title: "Deploy and operate",
       description: "Choose a runtime mode and verify service health, access, and recovery before directing clients to the deployment.",
       sections: [
-        ["topology", "Choose a deployment mode", ({ link, ref }) => `
+        ["topology", "Choose a deployment mode", ({ link }) => `
 <dl class="plain-list">
   <dt>Standalone service</dt><dd>${link("install", "Install one graphlake-admin process")} for the browser, HTTP, and optional Bolt and Gremlin endpoints.</dd>
   <dt>Distributed service</dt><dd>Use a Coordinator with private Workers for supported distributed operations. Run the same build on all nodes and provide access to the mapped data.</dd>
   <dt>Coordinator failover</dt><dd>Use etcd for leadership, S3-compatible shared control state, and TLS ingress that probes the elected Coordinator.</dd>
 </dl>
-<p>See the ${ref("deploy/cluster.md", "cluster deployment reference")} for flags, routing, and maintenance order.</p>`],
+<p>See the ${link("cluster", "cluster installation guide")} for configuration, startup, HA, and acceptance checks.</p>`],
         ["access", "Secure the client entry point", ({ ref }) => `
 <p>For shared browser access, use an HTTPS reverse proxy and set <code>--public-url</code> to the exact browser origin. Create model-level roles for query, export, modeling, publishing, and audit. Use role-based service accounts for application drivers and scoped personal tokens for AI clients.</p>
 <p>Keep database credentials in server-side environment settings. See the ${ref("deploy/README.md", "service and client reference")} for proxy headers and protocol configuration.</p>`],
-        ["health", "Check health and data access", ({ ref }) => `
+        ["health", "Check health and data access", ({ link }) => `
 <p>Check the build at <code>/healthz</code> and readiness at <code>/readyz</code>. Use runtime health to probe published sources and Workers, then run a known-result query through the same ingress clients use. Collect Prometheus metrics, audit events, and OpenTelemetry signals as needed.</p>
-<p>See the ${ref("deploy/monitoring.md", "monitoring reference")} for probe and telemetry setup.</p>`],
-        ["recover", "Upgrade, roll back, and recover", ({ ref }) => `
+<p>See the ${link("monitoring", "monitoring guide")} for probe and telemetry setup.</p>`],
+        ["recover", "Upgrade, roll back, and recover", ({ link, ref }) => `
 <p>Back up the catalog and credential configuration, and keep the previous binary release. Stop the standalone service, unpack the new archive into a separate directory, switch <code>current</code> and the unit as needed, then restart. Confirm the running build, model revision, and known-result query. Rollback restores the old release and its matching catalog when needed.</p>
-<p>For off-site recovery, keep a checkpoint that binds control state, PostgreSQL and Parquet snapshots, and expected business-query results. In the target <code>/recovery</code> page, import the checkpoint and pass acceptance checks before reopening traffic. Include local tables in a separate catalog backup.</p>
-<p>See the ${ref("docs/deployment.md#upgrade-and-rollback", "upgrade guide")} and ${ref("deploy/cluster.md#绑定恢复点并开放入口", "recovery manifest reference")}.</p>`],
+<p>For off-site recovery, keep a checkpoint that binds control state, PostgreSQL and Parquet snapshots, and expected business-query results. In the target <code>/recovery</code> page, import the checkpoint and pass acceptance checks before reopening traffic. Include local table artifacts referenced by the control export and keep a separate catalog backup for standalone deployments.</p>
+<p>See the ${ref("docs/deployment.md#upgrade-and-rollback", "upgrade guide")} and ${link("recovery", "backup and recovery guide")}.</p>`],
       ],
     },
   },

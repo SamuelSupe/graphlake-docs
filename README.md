@@ -1,6 +1,6 @@
 # GraphLake documentation site
 
-English and Simplified Chinese guides for GraphLake v1.1.0. [Live site](https://graphlake-docs.pages.dev/) · [中文文档](https://graphlake-docs.pages.dev/zh/). The English site starts at `/` and the Chinese site starts at `/zh/`. The output can also be served under a path prefix.
+English and Simplified Chinese guides for GraphLake v1.1.1. [Live site](https://graphlake-docs.pages.dev/) · [中文文档](https://graphlake-docs.pages.dev/zh/). The English site starts at `/` and the Chinese site starts at `/zh/`. The output can also be served under a path prefix.
 
 ## Build and preview
 
@@ -15,17 +15,22 @@ Open [English](http://127.0.0.1:4173/) or [中文](http://127.0.0.1:4173/zh/). D
 
 ## Cloudflare Pages
 
-The production site uses Cloudflare Pages Direct Upload. From a clean checkout of `main`, build and deploy with an authenticated Wrangler session that has Pages write access.
+The [deployment workflow](.github/workflows/deploy.yml) builds each push to `main` with Node.js 24, then uploads `dist/` to the existing `graphlake-docs` Pages project. Production deployments run serially.
+
+Configure these repository settings before running the workflow:
+
+- Actions variable `CLOUDFLARE_ACCOUNT_ID` for the account that owns the Pages project.
+- Actions secret `CLOUDFLARE_API_TOKEN` with **Account → Cloudflare Pages → Edit** on that account.
+
+After setting both values, rerun the failed deployment job or push another commit to `main`. To deploy the same build manually from a clean checkout with a local Wrangler login:
 
 ```sh
 node build.mjs
-npx --yes wrangler@4.163.0 pages deploy dist --project-name graphlake-docs --branch main
+npx --yes wrangler@4.163.0 pages deploy dist --project-name graphlake-docs --branch main --commit-hash "$(git rev-parse HEAD)"
 ```
-
-Deployments run when this command is invoked. GitHub pushes update the source repository.
 
 ## Update a guide
 
-- Edit `en.mjs` and `zh.mjs` together. Keep the section IDs and their ordering matched so language switching preserves the section.
+- Edit corresponding English and Chinese guides together. Operations guides live in `operations-en.mjs` and `operations-zh.mjs`. Keep the section IDs and their ordering matched so language switching preserves the section.
 - Keep commands and version-specific download URLs in `examples.mjs`. Check them against the release artifacts before updating the documented version.
-- `assets/` holds the site's styles, client script, and public product screenshots. The workbench and local-table images come from GraphLake's README on main after the v1.1.0 release. The connector artwork and its license come from `web/src/assets/connectors/`.
+- `assets/` holds the site's styles, client script, and public product screenshots. The workbench and local-table screenshots show the English GraphLake v1.1.1 console with the Parquet example. The connector artwork and its license come from `web/src/assets/connectors/`.

@@ -3,14 +3,18 @@ import {
   packagesList, release, runDemo, start, workbench,
 } from "./examples.mjs";
 import operations from "./operations-zh.mjs";
+import handbook from "./handbook-zh.mjs";
+import { postgresSource } from "./handbook-examples.mjs";
 
 const workbenchAlt = "GraphLake 查询工作台，展示 Parquet 示例中的三个账户及其转账关系";
 
 export default {
   ui: {
     product: "只读图分析", overview: "产品概览", docs: "文档", language: "English",
-    primary: "主导航", start: "入门", guides: "使用指南", operations: "运维",
+    primary: "主导航", start: "入门", guides: "使用指南", integration: "应用接入与权限", operations: "运维",
     breadcrumb: "当前位置", contents: "文档导航", onPage: "本页目录", previous: "上一篇", next: "下一篇",
+    search: "搜索文档", searchAction: "搜索", searchHint: "例如 CSR、Bolt 或 source_unavailable",
+    searchEmpty: "未找到匹配指南。试试更短的关键词。", searchMatches: "找到 {count} 篇相关指南",
     skip: "跳转到正文", copy: "复制", copied: "已复制", copyError: "请手动复制",
     footer: "资源", release: "发行说明",
   },
@@ -60,8 +64,9 @@ ${code("Shell", "ssh -N -L 7337:127.0.0.1:7337 graph-host")}
       title: "快速开始",
       description: "用内置的 Parquet 数据运行第一条图查询，再到浏览器工作台查看转账关系。",
       sections: [
-        ["generate", "1. 生成示例数据", ({ code }) => `
+        ["generate", "1. 生成示例数据", ({ code, link }) => `
 <p>安装 Git、Rust 1.95 或更高版本及 C/C++ 工具链。使用浏览器工作台还需 Node.js 24。内置示例会在临时 catalog 中生成三个账户、四笔转账和一份图映射。</p>
+<p>如果已安装 Linux 发行包，也能${link("first-model", "用包内二进制运行文件样例")}。</p>
 ${code("Shell", generateDemo)}`],
         ["run", "2. 运行 Cypher 查询", ({ code }) => `
 <p>在同一终端中，查找租户 <code>1</code> 内从账户 <code>10</code> 出发、经过两笔转账可到达的账户。金额为各条匹配路径上最后一笔转账的总和。</p>
@@ -96,6 +101,14 @@ ${code("Cypher", graphQuery)}
   <li>选择<strong>添加到草稿</strong>（Add to draft）并保存。浏览表与字段，确认模型需要的列。</li>
 </ol>
 <p>为 GraphLake 分配目标表或视图的只读凭据。文件路径以服务端为准。CSV 和 JSON Lines 需显式声明列类型，Parquet 可读取文件本身的结构。</p>`],
+        ["postgres", "接入 PostgreSQL", ({ code, link }) => `
+<ol>
+  <li>创建能连接数据库、读取目标表或视图的专用账号。先确认 GraphLake 主机可以访问数据库。</li>
+  <li>使用 Linux 安装包时，在 root 持有的 <code>/etc/graphlake/graphlake.env</code> 设置 <code>GRAPHLAKE_LEDGER_DSN</code>，重启服务使环境配置生效。</li>
+  <li>在<strong>数据源</strong>中添加 PostgreSQL，填写 DSN 对应的环境变量名。下方是等效的 catalog 配置。</li>
+</ol>
+${code("YAML", postgresSource)}
+<p>浏览 <code>ledger.public.accounts</code> 一类的表，确认键字段和端点列的类型。保存草稿，再${link("model", "映射表并校验模型")}。</p>`],
         ["next", "确定实体和关系表", ({ link }) => `
 <p>找出能稳定标识每种实体的键，以及将实体相连的列，再${link("model", "建立图模型")}。若查询可以接受定时刷新，也可以先把选定列加载为${link("local-tables", "本地 Parquet 副本")}。</p>`],
       ],
@@ -104,11 +117,11 @@ ${code("Cypher", graphQuery)}
       title: "建立图模型",
       description: "把实体映射为节点，把关联映射为有向边，发布后团队即可查询。",
       sections: [
-        ["keys", "定义节点和边的键", ({ code, ref }) => `
+        ["keys", "定义节点和边的键", ({ code, ref, link }) => `
 <p>为每个节点标签选择稳定的行标识。如果账号 ID 在不同租户中重复，将租户 ID 纳入复合键。边的起点和终点列必须按相同顺序对应完整的节点键。</p>
 <p>下面的映射片段使用 PostgreSQL 中的账户表和 Parquet 中的转账表。查询可返回 <code>amount</code> 和 <code>event_time</code>，也可用它们做过滤。</p>
 ${code("YAML", mapping)}
-<p>在${ref("examples/finance.yaml", "完整示例")}中查看数据源定义，并按实际环境替换连接设置。</p>`],
+<p>在${ref("examples/finance.yaml", "完整示例")}中查看数据源定义，并按实际环境替换连接设置。也可以先在${link("first-model", "第一个图模型教程")}中练习并核对已知结果。</p>`],
         ["publish", "保存、校验并发布", ({ link }) => `
 <ol>
   <li>在<strong>图模型</strong>（Graph Models）中创建模型，${link("sources", "添加数据源")}后配置节点标签和边类型。</li>
@@ -127,7 +140,7 @@ ${code("YAML", mapping)}
         ["run", "选择已发布的模型", ({ code, link }) => `
 <p>打开<strong>查询</strong>（Query），选择已发布模型和 Cypher、SQL 或 Gremlin。在${link("quickstart", "Parquet 示例")}中，下面的 Cypher 查询按目标账户汇总两跳转账。</p>
 ${code("Cypher", cypher)}
-<p>查询选项支持超时和 Cypher 参数。结果中包含模型版本和来源版本，复现结果时可以据此核对。</p>`],
+<p>查询选项支持超时和 Cypher 参数。结果中包含模型版本和来源版本，复现结果时可以据此核对。三种语言的可运行范例见${link("query-recipes", "查询示例")}。</p>`],
         ["graph", "查看路径与邻居", ({ code }) => `
 <p>返回路径或图对象后，在图视图选择节点或边查看属性。展开节点可查看邻居，并按需加载更多批次。标量结果可在表格视图查看。</p>
 ${code("Cypher", graphQuery)}`],
@@ -208,6 +221,7 @@ ${code("Cypher", "MATCH p = (report:Dataset)-[:DERIVED_FROM*1..4]->(:Dataset)\nW
 <p>在${link("query", "图视图")}检查每条路径，与数据集负责人核实结果。</p>`],
       ],
     },
+    ...handbook,
     ...operations,
     deploy: {
       title: "部署与运维",

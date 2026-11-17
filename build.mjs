@@ -6,9 +6,10 @@ import zh from "./zh.mjs";
 
 const locales = { en, "zh-CN": zh };
 const groups = [
-  ["start", ["", "install", "quickstart"]],
-  ["guides", ["sources", "model", "query", "local-tables", "mcp", "use-cases"]],
-  ["operations", ["deploy", "cluster", "monitoring", "recovery"]],
+  ["start", ["", "docs", "install", "first-model", "quickstart", "concepts"]],
+  ["guides", ["sources", "model", "query", "query-recipes", "algorithms", "local-tables", "use-cases"]],
+  ["integration", ["clients", "access", "mcp"]],
+  ["operations", ["deploy", "cluster", "monitoring", "recovery", "troubleshoot"]],
 ];
 const pages = groups.flatMap(([, slugs]) => slugs);
 const screenshotHeights = { workbench: 948, "local-tables": 805 };
@@ -48,10 +49,36 @@ function renderPage(locale, slug) {
   const ref = (path, label) => `<a href="${reference}/${path}">${label}</a>`;
   const code = (language, value) => `<div class="code-block"><div class="code-head"><span>${language}</span><button type="button" class="copy" data-copied="${ui.copied}" data-error="${ui.copyError}" hidden>${ui.copy}</button><span class="sr-only" role="status"></span></div><pre tabindex="0"><code>${escape(value)}</code></pre></div>`;
   const image = (name, alt, eager = false) => `<a class="screenshot" href="${assets}${name}.jpg"><img src="${assets}${name}.jpg" width="1512" height="${screenshotHeights[name]}" alt="${escape(alt)}"${eager ? ' fetchpriority="high"' : ' loading="lazy"'}></a>`;
-  const context = { link, ref, code, image, releasePage };
+  const asset = (path, label) => `<a href="${assets}${path}" download>${label}</a>`;
+  const context = { link, ref, code, image, asset, releasePage };
 
   function navGroups() {
     return groups.map(([group, entries]) => `<div class="nav-group"><p>${ui[group]}</p><ul>${entries.map((page) => `<li><a href="${href(page)}"${page === slug ? ' aria-current="page"' : ""}>${articles[page]?.title ?? ui.overview}</a></li>`).join("")}</ul></div>`).join("");
+  }
+
+  function searchGuide() {
+    const index = Object.entries(articles)
+      .filter(([page]) => page !== "docs")
+      .flatMap(([page, guide]) => guide.sections.map(([id, section, body]) => ({
+        page,
+        url: `${href(page)}#${id}`,
+        title: guide.title,
+        section,
+        text: `${guide.description} ${body(context).replace(/<[^>]+>/g, " ")}`.replace(/\s+/g, " ").trim(),
+      })));
+
+    return `<search class="doc-search" hidden>
+    <form action="./" method="get" data-empty="${ui.searchEmpty}" data-matches="${ui.searchMatches}">
+      <label for="guide-query">${ui.search}</label>
+      <div class="search-field">
+        <input id="guide-query" name="q" type="search" placeholder="${ui.searchHint}" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="search">
+        <button type="submit">${ui.searchAction}</button>
+      </div>
+    </form>
+    <p class="search-status" role="status"></p>
+    <ul class="search-results" hidden></ul>
+    </search>
+    <script type="application/json" id="guide-index">${JSON.stringify(index).replaceAll("<", "\\u003c")}</script>`;
   }
 
   function articlePage() {
@@ -68,12 +95,13 @@ function renderPage(locale, slug) {
       </div>
       <main class="doc" id="main" tabindex="-1">
         <header class="doc-heading">
-          <nav class="breadcrumb" aria-label="${ui.breadcrumb}">
-            <ol><li>${link("", ui.docs)}</li><li><a href="./" aria-current="page">${article.title}</a></li></ol>
-          </nav>
+          ${slug === "docs" ? "" : `<nav class="breadcrumb" aria-label="${ui.breadcrumb}">
+            <ol><li>${link("docs", ui.docs)}</li><li><a href="./" aria-current="page">${article.title}</a></li></ol>
+          </nav>`}
           <h1>${article.title}</h1>
           <p class="lead">${article.description}</p>
         </header>
+        ${slug === "docs" ? searchGuide() : ""}
         <details class="inline-outline"><summary>${ui.onPage}</summary>${sectionLinks}</details>
         ${sections.map(([id, heading, body]) => `<section class="doc-section" aria-labelledby="${id}"><h2 id="${id}">${heading}</h2>${body(context)}</section>`).join("")}
         <nav class="pagination" aria-label="${ui.contents}">
@@ -93,7 +121,7 @@ function renderPage(locale, slug) {
             <h1 id="overview">${home.title}</h1>
             <p>${home.description}</p>
             <div class="hero-actions">
-              <a class="button primary" href="${href("quickstart")}">${home.cta}${svg("arrow")}</a>
+              <a class="button primary" href="${href("first-model")}">${home.cta}${svg("arrow")}</a>
               <a class="button secondary" href="${href("install")}">${articles.install.title}</a>
             </div>
           </div>
@@ -148,7 +176,7 @@ function renderPage(locale, slug) {
   <div class="shell topbar">
     <a class="brand" href="${href("")}"><img src="${assets}graphlake-logo.png" width="44" height="44" alt=""><span>GraphLake</span></a>
     <nav aria-label="${ui.primary}">
-      <a href="${href("quickstart")}"${slug === "quickstart" ? ' aria-current="page"' : article && slug !== "use-cases" ? ' class="selected"' : ""}>${ui.docs}</a>
+      <a href="${href("docs")}"${slug === "docs" ? ' aria-current="page"' : article && slug !== "use-cases" ? ' class="selected"' : ""}>${ui.docs}</a>
       <a href="${href("use-cases")}"${slug === "use-cases" ? ' aria-current="page"' : ""}>${articles["use-cases"].title}</a>
       <a data-language href="${otherPage}" lang="${other}" hreflang="${other}">${ui.language}</a>
       <a class="github" href="${repository}">GitHub</a>
@@ -156,7 +184,7 @@ function renderPage(locale, slug) {
   </div>
 </header>
 ${article ? articlePage() : landingPage()}
-<footer class="site-footer"><div class="shell footer-row"><span>GraphLake</span><nav aria-label="${ui.footer}">${link("quickstart", ui.docs)} <a href="${releasePage}">${ui.release}</a> <a href="${repository}">GitHub</a></nav></div></footer>
+<footer class="site-footer"><div class="shell footer-row"><span>GraphLake</span><nav aria-label="${ui.footer}">${link("docs", ui.docs)} <a href="${releasePage}">${ui.release}</a> <a href="${repository}">GitHub</a></nav></div></footer>
 </body>
 </html>
 `;

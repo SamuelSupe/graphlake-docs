@@ -3,14 +3,18 @@ import {
   packagesList, release, runDemo, start, workbench,
 } from "./examples.mjs";
 import operations from "./operations-en.mjs";
+import handbook from "./handbook-en.mjs";
+import { postgresSource } from "./handbook-examples.mjs";
 
 const workbenchAlt = "GraphLake workbench showing three accounts linked by transfers from the Parquet demo";
 
 export default {
   ui: {
     product: "Read-only graph analytics", overview: "Overview", docs: "Docs", language: "中文",
-    primary: "Main navigation", start: "Get started", guides: "Guides", operations: "Operations",
+    primary: "Main navigation", start: "Get started", guides: "Guides", integration: "Applications and access", operations: "Operations",
     breadcrumb: "Breadcrumb", contents: "Docs navigation", onPage: "On this page", previous: "Previous", next: "Next",
+    search: "Search documentation", searchAction: "Search", searchHint: "Try CSR, Bolt, or source_unavailable",
+    searchEmpty: "No matching guides. Try a shorter term.", searchMatches: "Matching guides ({count})",
     skip: "Skip to content", copy: "Copy", copied: "Copied", copyError: "Select to copy",
     footer: "Resources", release: "Release notes",
   },
@@ -60,8 +64,9 @@ ${code("Shell", "ssh -N -L 7337:127.0.0.1:7337 graph-host")}
       title: "Quickstart",
       description: "Run a graph query against a small Parquet dataset, then explore the results in the browser workbench.",
       sections: [
-        ["generate", "1. Generate the demo data", ({ code }) => `
+        ["generate", "1. Generate the demo data", ({ code, link }) => `
 <p>Install Git, Rust 1.95 or newer, and a C/C++ toolchain. The workbench step also requires Node.js 24. The built-in demo writes three accounts, four transfers, and a graph mapping to a temporary catalog.</p>
+<p>If you already have the Linux package, ${link("first-model", "try the file-based demo with the packaged binary")}.</p>
 ${code("Shell", generateDemo)}`],
         ["run", "2. Run a Cypher query", ({ code }) => `
 <p>In the same shell, find destinations two transfers away from account <code>10</code> in tenant <code>1</code>. The amount sums the last transfer on each matched path.</p>
@@ -96,6 +101,14 @@ ${code("Cypher", graphQuery)}
   <li>Choose <strong>Add to draft</strong> (添加到草稿) and save. Browse tables and columns to confirm the fields you plan to map.</li>
 </ol>
 <p>Use credentials with read access to the intended tables and views. Paths resolve on the GraphLake server. CSV and JSON Lines need explicit column types. Parquet supplies its own schema.</p>`],
+        ["postgres", "Connect PostgreSQL step by step", ({ code, link }) => `
+<ol>
+  <li>Create a database identity that can connect and select the tables or views that the graph will use. Confirm that the GraphLake host can reach the database.</li>
+  <li>For the packaged Linux service, set <code>GRAPHLAKE_LEDGER_DSN</code> in the root-owned <code>/etc/graphlake/graphlake.env</code>. Restart the service to read the new environment.</li>
+  <li>Add a PostgreSQL source in <strong>Data Sources</strong>. Use the environment variable name for the DSN. The equivalent catalog configuration is below.</li>
+</ol>
+${code("YAML", postgresSource)}
+<p>Browse a table such as <code>ledger.public.accounts</code> and verify key fields and endpoint types. Save the draft, then ${link("model", "map the tables and validate the model")}.</p>`],
         ["next", "Map the tables", ({ link }) => `
 <p>Identify a stable key for each entity and the columns that connect one entity to another. Continue to ${link("model", "Model a graph")}. If you want queries to use a scheduled copy of selected columns, create ${link("local-tables", "a local Parquet table")}.</p>`],
       ],
@@ -104,11 +117,11 @@ ${code("Cypher", graphQuery)}
       title: "Model a graph",
       description: "Turn entities into nodes and links into directed relationships, then publish a version your team can query.",
       sections: [
-        ["keys", "Define node and relationship keys", ({ code, ref }) => `
+        ["keys", "Define node and relationship keys", ({ code, ref, link }) => `
 <p>Choose a row identifier for each node label. Include tenant identity in the key when account IDs repeat across tenants. A relationship maps its source and destination columns to the full node keys in the same order.</p>
 <p>In this mapping excerpt, <code>Account</code> rows come from PostgreSQL and <code>Transfer</code> rows come from Parquet. <code>amount</code> and <code>event_time</code> can be returned or filtered in queries.</p>
 ${code("YAML", mapping)}
-<p>See the ${ref("examples/finance.yaml", "complete example")} for the source definitions and adapt its connection details to your data.</p>`],
+<p>See the ${ref("examples/finance.yaml", "complete example")} for the source definitions and adapt its connection details to your data. Use ${link("first-model", "the first graph tutorial")} to practice with files and a known result.</p>`],
         ["publish", "Save, validate, and publish", ({ link }) => `
 <ol>
   <li>Create a model in <strong>Graph Models</strong> (图模型), ${link("sources", "add data sources")}, and map the node labels and edge types.</li>
@@ -127,7 +140,7 @@ ${code("YAML", mapping)}
         ["run", "Run against a published model", ({ code, link }) => `
 <p>Open <strong>Query</strong> (查询), select a published model, and choose Cypher, SQL, or Gremlin. In the ${link("quickstart", "Parquet demo")}, this Cypher query summarizes two-hop transfers to each destination.</p>
 ${code("Cypher", cypher)}
-<p>Use the query options to set a timeout or provide Cypher parameters. The result identifies the model revision and source versions. Check these when reproducing a result.</p>`],
+<p>Use the query options to set a timeout or provide Cypher parameters. The result identifies the model revision and source versions. Check these when reproducing a result. See ${link("query-recipes", "query recipes")} for runnable examples in all three languages.</p>`],
         ["graph", "Investigate the graph", ({ code }) => `
 <p>Return a path or graph objects to populate the graph view. Select a node or edge to inspect its properties. Expand a node to see its neighbors and load additional batches as needed. Use the table view for scalar results.</p>
 ${code("Cypher", graphQuery)}`],
@@ -208,6 +221,7 @@ ${code("Cypher", "MATCH p = (report:Dataset)-[:DERIVED_FROM*1..4]->(:Dataset)\nW
 <p>Use ${link("query", "the graph view")} to inspect paths and share findings with dataset owners.</p>`],
       ],
     },
+    ...handbook,
     ...operations,
     deploy: {
       title: "Deploy and operate",

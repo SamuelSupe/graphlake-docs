@@ -350,14 +350,19 @@ button { font: inherit; cursor: pointer; }
   margin-block-end: 0.65rem;
 }
 :lang(zh-CN) .doc h1 { letter-spacing: -0.025em; }
-.lead { color: var(--muted); max-inline-size: 73ch; }
+.lead { color: var(--muted); max-inline-size: 67ch; text-wrap: pretty; }
 .doc-section { margin-block-start: 1.75rem; }
-.doc-section + .doc-section { margin-block-start: 2.15rem; }
+.doc-section + .doc-section {
+  margin-block-start: 2.15rem;
+  padding-block-start: 1.55rem;
+  border-block-start: 1px solid var(--line);
+}
 .doc-section h2 {
   font-size: clamp(1.28rem, 1.02rem + 0.95vw, 1.9rem);
   line-height: 1.25;
   letter-spacing: -0.028em;
   font-weight: 730;
+  text-wrap: balance;
 }
 
 .doc-section p, .doc-section li, .plain-list {
@@ -365,12 +370,69 @@ button { font: inherit; cursor: pointer; }
   line-height: 1.68;
   color: var(--muted);
 }
-.doc-section p { margin-block: 0.5rem; }
-.doc-section ol { padding-inline-start: 1.45rem; }
+.doc-section p { margin-block: 0.7rem; text-wrap: pretty; }
+.doc-section :is(p:not(.note), ol, ul:not(.downloads), dl) { max-inline-size: 72ch; }
+:lang(zh-CN) .doc-section :is(p:not(.note), ol, ul:not(.downloads), dl) { max-inline-size: 43em; }
+.doc-section :is(ol, ul:not(.downloads)) { padding-inline-start: 1.45rem; }
+.doc-section .task-list li + li { margin-block-start: 0.7rem; }
+.example-details {
+  margin-block: 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 0.6rem;
+  background: var(--surface);
+}
+.example-details summary { padding: 0.72rem 0.85rem; cursor: pointer; font-weight: 650; }
+.example-details .code-block { margin: 0 0.7rem 0.7rem; }
 .doc-section li + li { margin-block-start: 0.35rem; }
 .doc-section strong, .plain-list dt { color: var(--ink); }
 .doc-section figure { margin-block: 1rem; }
 .doc-section figcaption { margin-block-start: 0.55rem; color: var(--muted); font-size: 0.88rem; }
+
+.doc-search {
+  display: block;
+  margin-block: 1.5rem;
+  padding: clamp(0.9rem, 2vw, 1.2rem);
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+  background: var(--surface);
+}
+.doc-search label { display: block; font-weight: 700; margin-block-end: 0.55rem; }
+.search-field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.6rem;
+}
+.search-field input, .search-field button {
+  min-block-size: 3rem;
+  border-radius: 0.42rem;
+  padding: 0.55rem 0.8rem;
+  font: inherit;
+}
+.search-field input {
+  min-inline-size: 0;
+  border: 1px solid #75839a;
+  color: var(--ink);
+  background: white;
+}
+.search-field button {
+  border: 1px solid var(--navy);
+  color: white;
+  background: var(--navy);
+  font-weight: 650;
+}
+.search-field button:hover { background: var(--link); }
+.search-status { color: var(--muted); font-size: 0.92rem; }
+.search-status:not(:empty) { margin-block-start: 0.75rem; }
+.search-results { list-style: none; margin: 0.65rem 0 0; padding: 0; }
+.search-results li + li { border-block-start: 1px solid var(--line); }
+.search-results a {
+  display: block;
+  padding-block: 0.6rem;
+  font-weight: 670;
+  text-decoration: none;
+}
+.search-results a:hover { text-decoration: underline; }
+.search-results span { display: block; margin-block-start: 0.18rem; color: var(--muted); font-size: 0.88rem; font-weight: 450; }
 
 code {
   font-family: var(--mono);

@@ -1,0 +1,230 @@
+import {
+  boltClient, components, downloadSample, followPath, gremlinClient,
+  httpClient, outgoingCounts, pageRank, route, runSample, sampleCatalog, sampleWorkbench, transferTotals,
+  twoHopTraversal,
+} from "./handbook-examples.mjs";
+
+export default {
+  docs: {
+    title: "Documentation",
+    description: "Start with a sample graph, then connect your data, publish a model, and run queries from the console or an application.",
+    sections: [
+      ["start-here", "Try GraphLake", ({ link }) => `
+<ul class="task-list">
+  <li><strong>${link("first-model", "Build your first graph")}</strong> Run a known-result query on small CSV and JSON Lines files with the Linux CLI.</li>
+  <li><strong>${link("quickstart", "Try the Parquet workbench demo")}</strong> Build from source and inspect the transfer graph in the browser.</li>
+  <li><strong>${link("install", "Install the Linux service")}</strong> Verify the package, start the service, and sign in.</li>
+</ul>`],
+      ["model-and-query", "Build and query your own graph", ({ link }) => `
+<ul class="task-list">
+  <li><strong>${link("concepts", "Understand the graph model")}</strong> Learn how sources, keys, edges, and published revisions fit together.</li>
+  <li><strong>${link("sources", "Connect your data")}</strong> Choose a connector, check fields, and decide whether to query directly or load a local copy.</li>
+  <li><strong>${link("query-recipes", "Run query recipes")}</strong> Follow paths in Cypher, summarize rows in SQL, and traverse in Gremlin.</li>
+  <li><strong>${link("algorithms", "Run graph algorithms")}</strong> Compare paths, rank nodes, or identify connected groups.</li>
+</ul>`],
+      ["integrate-and-operate", "Connect applications and operate", ({ link }) => `
+<ul class="task-list">
+  <li><strong>${link("clients", "Connect an application")}</strong> Run a revision-pinned HTTP query or use a Bolt or Gremlin driver.</li>
+  <li><strong>${link("access", "Configure access")}</strong> Grant the permissions an analyst, application, or AI client needs.</li>
+  <li><strong>${link("cluster", "Install a cluster")}</strong> Start Workers, then configure Coordinator failover and verify ingress.</li>
+  <li><strong>${link("troubleshoot", "Troubleshoot an issue")}</strong> Start from the symptom and check the appropriate layer.</li>
+</ul>`],
+    ],
+  },
+  concepts: {
+    title: "Core concepts",
+    description: "Understand what a graph model maps, what publishing changes, and which data a query reads.",
+    sections: [
+      ["sources", "Sources, tables, and models", ({ link }) => `
+<p>A <strong>source</strong> is a connection or collection of files that GraphLake can read. A <strong>table</strong> is a named input within that source. A <strong>graph model</strong> maps rows from one or more tables into labels and relationships.</p>
+<p>For example, an accounts table in PostgreSQL can define <code>Account</code> nodes while a Parquet transfer table defines <code>Transfer</code> edges. The relationship mapping uses account keys to connect those two inputs.</p>
+<p>See ${link("sources", "Connect data")} for direct source access and ${link("local-tables", "Local tables")} for scheduled Parquet copies.</p>`],
+      ["identity", "Keys, endpoints, and properties", ({ link }) => `
+<dl class="plain-list">
+  <dt>Node label</dt><dd>A named type such as <code>Account</code>. The business key identifies one node within that label.</dd>
+  <dt>Relationship type</dt><dd>A directed link such as <code>Transfer</code>. Its source and destination columns map to the complete keys of the two endpoint nodes, in order.</dd>
+  <dt>Property</dt><dd>A mapped column such as <code>amount</code> that you can display, filter, or aggregate. Distinct transfer IDs keep parallel transfers separate.</dd>
+</dl>
+<p>When account IDs repeat across tenants, use a composite key such as <code>[tenant_id, account_id]</code>. Both endpoint mappings must include the tenant column and use compatible types. Try this workflow in ${link("first-model", "your first graph")}.</p>`],
+      ["versions", "Drafts, published revisions, and data freshness", ({ link }) => `
+<p>A draft is the editable configuration. Publishing makes a validated revision available to clients. Queries use the published revision and report that revision alongside source versions. Rolling back a model switches its mapping and leaves source data under the source system’s control.</p>
+<p>A local table uses the last successfully published copy. A CSR index represents the graph scope and source state captured at build time. If you need the latest records, check the local table and CSR freshness before choosing which data to query.</p>
+<p>See ${link("model", "Model a graph")} for publishing and ${link("algorithms", "Graph algorithms")} for CSR selection.</p>`],
+    ],
+  },
+  "first-model": {
+    title: "Build your first graph",
+    description: "Use the installed Linux CLI and two tiny files to map accounts and transfers, then check the result.",
+    sections: [
+      ["files", "1. Download the sample", ({ code, link, asset }) => `
+<p>Finish ${link("install", "Linux installation")} first. The example uses three files in one directory. It does not need a database connection.</p>
+<ul class="task-list">
+  <li>${asset("examples/transfer/accounts.csv", "accounts.csv")} contains Alice, Bob, and Carol.</li>
+  <li>${asset("examples/transfer/transfers.jsonl", "transfers.jsonl")} contains two directed transfers.</li>
+  <li>${asset("examples/transfer/graph.yaml", "graph.yaml")} maps the files to one node label and one relationship type.</li>
+</ul>
+${code("Shell", downloadSample)}`],
+      ["mapping", "2. Read the mapping", ({ code }) => `
+<p><code>files</code> resolves relative to <code>graph.yaml</code>. The file schemas assign <code>Int64</code> to keys and endpoints and <code>Decimal128(18, 2)</code> to amounts. The CSV columns follow the header order.</p>
+<details class="example-details"><summary>View the complete graph.yaml</summary>
+${code("YAML", sampleCatalog)}
+</details>
+<p><code>src</code> and <code>dst</code> both point to <code>Account.id</code>. The transfer’s own <code>id</code> identifies the edge. Multiple rows can connect the same accounts when their transfer IDs differ.</p>`],
+      ["verify", "3. Verify a known result", ({ code, link }) => `
+<p>From the sample directory, run a query for account <code>1</code>. Pass the account ID as a parameter so you can reuse the query for other accounts.</p>
+${code("Shell", runSample)}
+<p class="note"><strong>Expected result</strong> Alice sent Bob <code>12.25</code>. Change <code>account_id</code> to <code>3</code> to confirm Carol has no outgoing transfer.</p>
+<p>Once this succeeds, use ${link("query-recipes", "query recipes")} on the same files.</p>`],
+      ["publish", "4. Bring the model into the console", ({ code, link }) => `
+<p>From the same shell, use the sample directory as a separate catalog. Initialize its administrator password once, then start the packaged console on port <code>7347</code>.</p>
+${code("Shell", sampleWorkbench)}
+<ol>
+  <li>Open <a href="http://127.0.0.1:7347/">http://127.0.0.1:7347</a> and sign in as <code>admin</code>. If the service is on another machine, forward port <code>7347</code> over SSH.</li>
+  <li>In <strong>Graph Models</strong>, verify that <code>graph</code> is published. Open <strong>Query</strong>, paste the earlier Cypher, and supply <code>{"account_id":1}</code> in <strong>Query options</strong>.</li>
+</ol>
+<p>To use your own inputs, start from ${link("sources", "Connect data")}. Check key types and sample rows before you publish a mapping over production data.</p>`],
+    ],
+  },
+  "query-recipes": {
+    title: "Query recipes",
+    description: "Run small examples with known results in Cypher, SQL, and Gremlin. All examples use the same transfer model.",
+    sections: [
+      ["setup", "Prepare the example", ({ link }) => `
+<p>Use the CSV and JSON Lines sample from ${link("first-model", "Build your first graph")}. Run these snippets in the published model’s <strong>Query</strong> workspace. For CLI runs, choose the dialect with <code>--language</code> and set Cypher values with <code>--parameters</code>.</p>
+<p>For Cypher snippets that use <code>$account_id</code>, enter <code>{"account_id":1}</code> in <strong>Query options</strong>.</p>`],
+      ["paths", "Follow two transfers in Cypher", ({ code }) => `
+<p>Bind a starting account and return a named path. The graph view can draw the path and show the properties of each hop.</p>
+${code("Cypher", followPath)}
+<p class="note"><strong>Expected result</strong> Alice → Bob → Carol, with two transfer edges.</p>`],
+      ["counts", "Keep accounts with zero transfers", ({ code }) => `
+<p>Use <code>OPTIONAL MATCH</code> to keep the account when it has no outgoing edge. Count the relationship variable to exclude the empty match.</p>
+${code("Cypher", outgoingCounts)}
+<p class="note"><strong>Expected result</strong> Alice has 1, Bob has 1, and Carol has 0.</p>`],
+      ["sql", "Aggregate the mapped edges in SQL", ({ code }) => `
+<p>Choose SQL and query the mapped relationship type. Double quotes preserve the mixed-case graph table name.</p>
+${code("SQL", transferTotals)}
+<p class="note"><strong>Expected result</strong> 2 transfers, with a total amount of <code>37.75</code>.</p>`],
+      ["gremlin", "Traverse outgoing edges in Gremlin", ({ code, link }) => `
+<p>Choose Gremlin, start from the complete business key <code>1</code>, and take two outgoing <code>Transfer</code> steps.</p>
+${code("Gremlin", twoHopTraversal)}
+<p class="note"><strong>Expected result</strong> Carol.</p>
+<p>For the next step, see ${link("query", "Query and explore")} for result views, pagination, and Arrow export.</p>`],
+    ],
+  },
+  algorithms: {
+    title: "Graph algorithms",
+    description: "Choose a graph projection, run an algorithm on the sample, and interpret its result and resource use.",
+    sections: [
+      ["choose", "Choose an algorithm and graph scope", ({ link }) => `
+<dl class="plain-list">
+  <dt>Shortest path</dt><dd>Find a low-cost route between known endpoints. Decide whether cost means hops or a mapped numeric edge property.</dd>
+  <dt>PageRank</dt><dd>Rank nodes in a directed graph based on incoming relationships and how their sources distribute rank.</dd>
+  <dt>Weakly connected components</dt><dd>Group nodes connected by any route when edge direction is ignored.</dd>
+  <dt>Communities and embeddings</dt><dd>Use Louvain or Leiden to group a projected graph, and Node2Vec to produce vector features.</dd>
+</dl>
+<p>Choose edge types, direction, and weights before running the algorithm. If you use a weight, all selected edge types must expose that field with supported numeric values. The examples below use the ${link("first-model", "three-account sample")}.</p>`],
+      ["rank", "Rank accounts with PageRank", ({ code }) => `
+${code("Cypher", pageRank)}
+<p>Expect a score for each of the three accounts. Sort by rank to compare nodes within the same projection. Changing edge selection or direction changes the graph being ranked.</p>`],
+      ["components", "Find connected groups", ({ code }) => `
+${code("Cypher", components)}
+<p>Alice, Bob, and Carol share one component. Comparing component IDs tells you whether nodes lie in the same group. A common component does not, by itself, specify a directed route.</p>`],
+      ["route", "Find a weighted route", ({ code }) => `
+<p>Run the CLI command in the sample directory. This treats the transfer amount as an illustrative numeric cost.</p>
+${code("Shell", route)}
+<p class="note"><strong>Expected result</strong> A two-hop route from account <code>1</code> to <code>3</code>, with exact cost <code>37.75</code>.</p>`],
+      ["csr", "Choose live data or a CSR generation", ({ link, ref }) => `
+<p>For repeated graph traversals, an administrator or publisher can build a CSR generation, which is a compressed adjacency snapshot of a published model. In <strong>Query options</strong>, choose an available generation only if its source state and graph scope match the question. Rebuild after changing mapped data or scope when the result needs the new state.</p>
+<p>In a ${link("cluster", "cluster")}, supported PageRank and component workloads can use partitioned CSR. Community detection and Node2Vec work on a whole projection on the execution node. Check available operations, memory budgets, and weighting rules in the ${ref("docs/reference.zh-CN.md#整图算法", "algorithm reference")}.</p>`],
+    ],
+  },
+  clients: {
+    title: "Connect an application",
+    description: "Run a read-only query using the HTTP API, a Bolt driver, or a Gremlin WebSocket client.",
+    sections: [
+      ["prepare", "Prepare an application identity", ({ link }) => `
+<ol>
+  <li>Publish the target model and note its ID. The code below uses <code>graph</code> from ${link("first-model", "the sample")}.</li>
+  <li>In <strong>Access Control</strong>, create a dedicated service account, such as <code>analytics</code>. Generate its token with <code>openssl rand -hex 32</code> and assign a role with query permission for that model. See ${link("access", "Users and permissions")}.</li>
+  <li>Set <code>GRAPHLAKE_TOKEN</code> in the client process from your secret store. Set <code>GRAPHLAKE_ORIGIN</code> to the service’s HTTPS origin. For the local sample, use <code>http://127.0.0.1:7347</code>.</li>
+</ol>`],
+      ["http", "Run a revision-pinned HTTP query", ({ code }) => `
+<p>Save the following Python 3 script and run it with the client’s environment. It discovers the model’s <code>active_revision</code>, then sends a unique request ID, the chosen revision, and the query. <code>parameters_json</code> is a JSON string containing the Cypher parameters.</p>
+${code("Python", httpClient)}
+<p class="note"><strong>Expected result</strong> <code>[['Alice']]</code> for the sample. HTTP preview rows represent cells as strings or null. The response also reports the model revision, source information, and whether the preview is truncated.</p>
+<p>For full results, grant export in addition to query. Request <code>capture_result: true</code>, check <code>snapshot_complete</code>, and fetch <code>GET /api/v1/models/{id}/results/{snapshot}</code> while the snapshot is available.</p>`],
+      ["bolt", "Read through a Bolt driver", ({ code, ref }) => `
+<p>Set <code>--driver-model graph --bolt-port 7687</code> on the service to enable Bolt and expose it through TLS as shown in the ${ref("deploy/README.md#客户端接入", "client configuration")}. Use a direct <code>bolt+s://</code> URI in production and select the published model with the driver’s database argument.</p>
+${code("Python · neo4j", boltClient)}
+<p>The release’s driver checks use <code>neo4j==5.28.2</code>. Auto-commit is available across supported sources. Explicit read transactions are supported for PostgreSQL and Parquet. Select compatible client versions from the protocol reference for your release.</p>`],
+      ["gremlin", "Read through Gremlin WebSocket", ({ code }) => `
+<p>Set <code>--driver-model graph</code> on the service to enable Gremlin and set its default model. Forward WebSocket upgrades on <code>/gremlin</code> through your HTTPS proxy. The traversal source name can select an authorized model.</p>
+${code("Python · gremlinpython", gremlinClient)}
+<p>Use <code>gremlinpython==3.7.4</code> for this example. It prints Alice, Bob, and Carol. Use supported read-only traversals and a GraphSON 3 or GraphBinary 1.0 serializer.</p>`],
+      ["errors", "Handle revisions and access failures", ({ link }) => `
+<p>If a model was republished after discovery, reload the active revision and reissue the read with a new request ID once you have confirmed that the new mapping is acceptable. For <code>401</code>, check the account name and token. For <code>403</code>, check the model role and tenant scope. Investigate readiness and source errors before retrying long queries.</p>
+<p>For AI clients use ${link("mcp", "MCP")}. For readiness and source failures see ${link("troubleshoot", "Troubleshooting")}.</p>`],
+    ],
+  },
+  access: {
+    title: "Users and permissions",
+    description: "Set up people, application service accounts, and AI clients with permissions on the models they need.",
+    sections: [
+      ["identities", "Choose an identity for the client", ({ link }) => `
+<dl class="plain-list">
+  <dt>Member</dt><dd>Use a person’s own account for console work. Console and MCP access can be managed separately.</dd>
+  <dt>Service account</dt><dd>Give each application its own token and model role. Use the username <code>svc/&lt;name&gt;</code> for ${link("clients", "HTTP, Bolt, and Gremlin clients")}.</dd>
+  <dt>Personal MCP token</dt><dd>Use the owner’s model permissions and tenant scope for ${link("mcp", "authorized AI work")}.</dd>
+</dl>`],
+      ["roles", "Grant a role on the intended model", () => `
+<ol>
+  <li>Sign in as an administrator and open <strong>Access Control</strong>. Create a member or service account.</li>
+  <li>Create a role, add the target model, and select actions. Add the identity to that role.</li>
+  <li>Verify the account by running a small query on the intended model and checking access to a model outside its role.</li>
+</ol>
+<dl class="plain-list">
+  <dt>Query and export</dt><dd>Query covers schema inspection, reads, and graph exploration. Full Arrow export requires both query and export on the same model.</dd>
+  <dt>Modeling and publication</dt><dd>Modelers can edit and validate drafts within approved sources. Publication controls activating, rolling back, or taking a model offline. Administrators manage connectors and physical table access.</dd>
+  <dt>Audit</dt><dd>Review configuration and revision history with an audit role.</dd>
+</dl>`],
+      ["tenants", "Constrain rows by tenant", () => `
+<p>Set a model role’s logical partition predicate, for example <code>tenant_id = 1</code>. Map <code>tenant_id</code> into all relevant node and edge business keys and both relationship endpoints, with compatible types. GraphLake enforces the scope on supported client queries, exploration, and exports.</p>
+<p>Conflicting tenant values on the same model are rejected. To segregate sensitive columns, use database views or a separate model projection. Shared CSR generations are available for unscoped queries.</p>`],
+      ["rotate", "Rotate credentials and verify", ({ ref }) => `
+<p>Rotate an application’s token in its service-account settings. Put the new token in the client’s secret store, reconnect, and verify the old token no longer grants access. Role changes can invalidate existing sessions, connections, and download tickets.</p>
+<p>See the ${ref("deploy/README.md#用户与角色", "access control reference")} for legacy service-account files, enterprise login, and audit handling.</p>`],
+    ],
+  },
+  troubleshoot: {
+    title: "Troubleshooting",
+    description: "Use the symptom to identify the failing layer, apply a targeted fix, and check the result.",
+    sections: [
+      ["startup", "The console does not open", ({ link }) => `
+<ol>
+  <li>On the server, check <code>systemctl status graphlake</code> and <code>journalctl -u graphlake -n 80 --no-pager</code>.</li>
+  <li>Check <code>/healthz</code> for the running build and <code>/readyz</code> for readiness. If the service is ready locally, check SSH forwarding or the reverse proxy on the client path.</li>
+  <li>For an HTTPS deployment, confirm the real origin matches <code>--public-url</code> and the proxy preserves <code>Host</code> and <code>Origin</code>.</li>
+</ol>
+<p>See ${link("monitoring", "Monitor and troubleshoot")} for cluster and ingress checks.</p>`],
+      ["model", "A model is missing or cannot be published", ({ link }) => `
+<ul class="task-list">
+  <li><strong>No published revision.</strong> Open the model, validate its draft, then publish. Clients discover published models within their role.</li>
+  <li><strong>Source or column error.</strong> Browse source fields from the server. Check the process’s environment variable names, file paths, and read permissions.</li>
+  <li><strong>Duplicate key or invalid endpoint.</strong> Compare both ends of the mapping, including types, tenant columns, and component order. Run ${link("first-model", "the sample")} if you need a known-good baseline.</li>
+  <li><strong>Revision conflict.</strong> Reload the current draft or active revision and review the changes before saving or querying again.</li>
+</ul>`],
+      ["query", "A query is empty, slow, or incomplete", ({ link }) => `
+<ul class="task-list">
+  <li><strong>Empty result.</strong> Check the active revision, account and tenant filters, time scope, and direction. Reduce the query to one known key and one hop.</li>
+  <li><strong><code>503 source_unavailable</code>.</strong> Check the source in Runtime Settings → Health Checks, then verify connectivity and credentials from the GraphLake host.</li>
+  <li><strong>Timeout or budget error.</strong> Start with a selective key, bound the hop count, and return only required fields. Use <code>EXPLAIN</code> to inspect the plan before increasing a budget.</li>
+  <li><strong>Preview is truncated.</strong> Use the graph continuation or result export path for your client. Check the full-result permission for Arrow export.</li>
+  <li><strong>Source changed or neighbor session expired.</strong> Rerun the original query to create a fresh result and expand again.</li>
+</ul>
+<p>See ${link("query-recipes", "Query recipes")} for known results in all three dialects.</p>`],
+      ["freshness", "A local copy or CSR is stale", ({ link }) => `
+<p>Check the last successful load, its watermark, and whether the model actually uses the local copy. Physical deletes and rows below the published watermark can require a full reconciliation. If a CSR generation is older than the needed data, rebuild it or query the appropriate live model.</p>
+<p>Rerun a known-result query after the repair and compare the revision and source state. See ${link("local-tables", "Local tables")} and ${link("algorithms", "Graph algorithms")}.</p>`],
+    ],
+  },
+};

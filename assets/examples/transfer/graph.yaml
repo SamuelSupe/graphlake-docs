@@ -1,0 +1,29 @@
+graph: text-files
+sources:
+  people:
+    type: csv
+    tables:
+      accounts:
+        files: [accounts.csv]
+        columns:
+          - {name: id, data_type: Int64, nullable: false}
+          - {name: name, data_type: Utf8}
+  payments:
+    type: jsonl
+    tables:
+      transfers:
+        files: [transfers.jsonl]
+        columns:
+          - {name: id, data_type: Int64, nullable: false}
+          - {name: src, data_type: Int64}
+          - {name: dst, data_type: Int64}
+          - {name: amount, data_type: 'Decimal128(18, 2)'}
+nodes:
+  Account: {source: people.accounts, key: [id], properties: [name]}
+edges:
+  Transfer:
+    source: payments.transfers
+    key: [id]
+    from: {node: Account, columns: [src]}
+    to: {node: Account, columns: [dst]}
+    properties: [amount]

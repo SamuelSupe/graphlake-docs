@@ -40,8 +40,31 @@ ${code("Shell flags", haFlags)}
   },
   monitoring: {
     title: "Monitor and troubleshoot",
-    description: "Check each layer of a deployment, then set up continuous checks for query results, failover, and data freshness.",
+    description: "Check published models, data sources, and Workers in Runtime Settings. Configure local logs and OpenTelemetry, then set up continuous monitoring.",
     sections: [
+      ["ui-health", "Check model, source, and Worker health", ({ image, link }) => `
+<ol>
+  <li>Sign in as an administrator and open <strong>Runtime Settings → Health Checks</strong>. Under <strong>Model health</strong>, select <strong>Check</strong> on a published model or <strong>Check all</strong> to check all published models.</li>
+  <li>Read the result, published revision, and check time. Expand the line that shows how many data sources are available. On a cluster it also shows the number of healthy Workers. The list identifies each source and Worker and names any inaccessible sources reported by a Worker.</li>
+  <li>Use <strong>Show only models that need attention</strong> to focus on reported issues. Run a fresh check after repairs, then run a known-result query through the same endpoint as your clients.</li>
+</ol>
+<dl class="plain-list">
+  <dt>Unchecked / Unpublished</dt><dd>Run a check on a published model. Draft validation and runtime health are shown separately.</dd>
+  <dt>Source unavailable</dt><dd>Open <strong>Configure data sources</strong> and check reachability, credential environment variables, or file paths. See ${link("sources", "Connect data")}.</dd>
+  <dt>Incompatible mapping</dt><dd>Use the reported table, field, or mapping location to check columns, business keys, and endpoint types. Correct the draft, validate it, and publish.</dd>
+  <dt>Worker unavailable / Connection failed</dt><dd>Check the listed Worker process and its private network route. If the Worker identifies a source, check access to that source from the Worker, including file mounts and credentials.</dd>
+</dl>
+<figure>${image("ops-health", "English Health Checks tab listing the Transfer demo model, two available data sources, and two healthy Workers")}<figcaption>Expand the model’s summary to see the individual source and Worker results.</figcaption></figure>`],
+      ["telemetry", "Configure logs and OpenTelemetry", ({ image, ref }) => `
+<ol>
+  <li>Standalone instances and Coordinators without failover use <code>.graphlake-telemetry.yaml</code> in the catalog by default. For each Coordinator with failover, specify a host-local configuration file. You can copy the packaged ${ref("deploy/telemetry.yaml", "telemetry template")} and pass <code>--telemetry-config /etc/graphlake/telemetry.yaml</code> or set <code>GRAPHLAKE_TELEMETRY_CONFIG</code> before restarting. The flag takes precedence. The service user needs write access to the file and parent directory to save changes.</li>
+  <li>In <strong>Runtime Settings → Logging and telemetry</strong>, choose <strong>Plain text</strong> or <strong>Structured JSON</strong> under <strong>Local logs</strong>. Local log formatting can be configured independently of OTLP.</li>
+  <li>Under <strong>OpenTelemetry export</strong>, select <strong>Enable OTLP export</strong> and enter the Collector’s OTLP/HTTP base URL. GraphLake appends <code>/v1/metrics</code>, <code>/v1/logs</code>, and <code>/v1/traces</code>. Select the signals the Collector should receive.</li>
+  <li>Open <strong>Advanced export settings</strong> for service name, instance ID, trace sampling, export interval, and timeout. If the Collector requires authentication, under <strong>Collector headers</strong> map the header name to a server-side variable such as <code>GRAPHLAKE_OTLP_AUTHORIZATION</code>. For new credential bindings, set <code>GRAPHLAKE_OTLP_ALLOWED_ORIGINS</code> to the permitted Collector origins.</li>
+  <li>Select <strong>Save settings</strong>. When the page reports a restart is required, restart the process whose configuration you edited. Reopen the tab and check <strong>Current OTLP export</strong>, <strong>Current local logging</strong>, and the active endpoint. Configure other Coordinators, Workers, and backup processes using their own files.</li>
+</ol>
+<p>Run a known-result query to generate activity. In <strong>Health Checks → Export status</strong>, click <strong>Refresh status</strong> and check <strong>Last fully accepted at</strong> for each enabled signal. <strong>Failures</strong> and <strong>Rejected</strong> are counters since process start. If they increase, inspect connectivity, Collector responses and credentials, and the Collector’s downstream pipeline.</p>
+<figure>${image("ops-telemetry", "English Logging and telemetry tab with Structured JSON and OTLP selected and a restart required after saving")}<figcaption>The saved settings take effect after the process restarts. The current values are shown at the top of the tab.</figcaption></figure>`],
       ["probes", "Check the service and ingress", ({ code, link }) => `
 <p>Run the first two probes through the same HTTPS endpoint that clients use. Query the private status port on each Coordinator host to check its role. Set <code>--status-port</code> when starting the process, as shown in the ${link("cluster", "cluster installation")}.</p>
 ${code("Shell", serviceChecks)}
@@ -62,12 +85,22 @@ ${code("Shell", installMonitor)}`],
   },
   recovery: {
     title: "Back up and recover",
-    description: "Create a consistent checkpoint for an HA deployment, restore it at a separate site, and reopen traffic after verification.",
+    description: "Back up a standalone deployment or use the HA console to create a backup, restore it at a target site, and verify business results.",
     sections: [
+      ["backup-ui", "Create a manual backup in the console", ({ image, link }) => `
+<ol>
+  <li>On each ${link("cluster", "Coordinator with failover enabled")}, create an existing private absolute directory with mode <code>0700</code>, writable by the GraphLake service user. Set <code>GRAPHLAKE_MANUAL_BACKUP_DIR</code> to that path in the service environment and restart the process.</li>
+  <li>As an administrator on the active Coordinator, open <strong>Runtime Settings → Backup and Recovery</strong>. Under <strong>Manual backup</strong>, select <strong>Back up now</strong>. The completed backup is written to the server and the page reports its filename and checkpoint time. If the export includes local tables, keep their companion directory with the control archive.</li>
+  <li>Use <strong>Refresh backup status</strong> to check <strong>Scheduled backup</strong> and <strong>Offsite copy verification</strong>. Compare the latest attempt, last success after failures, and checkpoint time. If you use a separate status directory, point <code>GRAPHLAKE_BACKUP_STATUS_DIR</code> at it and grant the service read access.</li>
+</ol>
+<p>Control archives contain credentials such as password hashes. Keep the archive and its related files in private storage and verify the offsite replica. Keep the external data for the same checkpoint as described below.</p>
+<figure>${image("ops-backups", "English Backup and Recovery tab showing manual backup requirements, scheduled backup, offsite verification, and recovery controls")}<figcaption>The screenshot shows the standalone console. On a failover Coordinator with a backup directory configured, the same panel offers <strong>Back up now</strong>.</figcaption></figure>`],
+      ["standalone", "Back up a standalone deployment", ({ link }) => `
+<p>Stop the service and copy the complete catalog with private permissions, including hidden revision archives, authentication files, and local tables. Back up referenced source files, databases, and service configuration separately. For restoration, stop the destination service, restore the catalog, permissions, and matching source data, then start it. Check readiness, the intended published revision, and a known-result query using the ${link("monitoring", "monitoring guide")}.</p>`],
       ["backup", "1. Export control state and verify the replica", ({ code, link }) => `
 <p>For an HA ${link("cluster", "cluster")}, the packaged hourly systemd timer exports models, published revisions, roles, and other control state from the shared cluster configuration. Install the timer on the designated backup host with the released package, the same cluster configuration, and credentials to read its control state. For catalog-backed local tables, keep <code>GRAPHLAKE_BACKUP_CATALOG_DIR</code> pointed at the real catalog in the backup unit.</p>
 ${code("Shell", setupBackupTimer)}
-<p>Sync the completed checkpoint and its related files to an independent site. Treat the archive as credential-bearing data. On the replica, verify the completed copy before treating it as recoverable.</p>
+<p>Sync the completed checkpoint and its related files to an independent site. Treat the archive as credential-bearing data. On the replica, verify the completed copy. To record the result for the console, add <code>--status-file /var/lib/graphlake-backups/verify-status.json</code> and make that status available in the directory the console reads.</p>
 ${code("Shell", verifyBackup)}`],
       ["manifest", "2. Bind source data to the same checkpoint", ({ code, ref }) => `
 <p>For a recovery point that includes external sources, pause changes to model control state and the mapped data at the same business checkpoint. Export control state, run <code>pg_dump -Fc</code> for the PostgreSQL data if used, and copy the exact Parquet files referenced by your models. Use the fingerprint command for each PostgreSQL relation in the manifest.</p>
@@ -75,12 +108,23 @@ ${code("Shell", fingerprintPostgres)}
 <p>Place <code>manifest.json</code> next to <code>control.json</code>. Include <code>postgres.dump</code> when the manifest contains PostgreSQL and keep Parquet paths relative to the checkpoint. Keep any exported <code>local-&lt;id&gt;</code> directories next to it. Use actual lowercase SHA-256 digests and the published <code>active_revision</code>. Record at least one known-result query with the exact rows expected on the recovered data.</p>
 ${code("JSON", recoveryManifest)}
 <p>Omit the <code>postgres</code> or <code>parquet</code> block when the checkpoint has no such external source. For models that use only local copies, the control archive records the associated local files. See the ${ref("deploy/cluster.md#绑定恢复点并开放入口", "manifest contract")} for checkpoint details.</p>`],
-      ["import", "3. Import at the target site", ({ link }) => `
+      ["import", "3. Restore from the target site’s HTTPS console", ({ image, link }) => `
 <p>Use a fresh cluster name and S3 prefix at the target, with its own administrator credentials. Configure the same recovery settings on all candidate Coordinators. Set <code>GRAPHLAKE_RESTORE_INBOX</code> to a read-only directory where each checkpoint is a separate subdirectory. Provide a writable source mount and a compatible empty PostgreSQL database if needed. Set <code>GRAPHLAKE_RESTORE_POSTGRES_DSN_ENV</code> to the target DSN variable name used in the manifest.</p>
-<p>Set a dedicated <code>GRAPHLAKE_RECOVERY_TOKEN</code> shared by the target Coordinators. Start the ${link("cluster", "target cluster")} and its TLS recovery route. From a trusted client, open the target HTTPS <code>/recovery</code> page, authenticate with the recovery token, select the checkpoint, and run the check and import. If import stops after writing begins, retry with the same checkpoint.</p>`],
+<p>Set a dedicated <code>GRAPHLAKE_RECOVERY_TOKEN</code> shared by the target Coordinators. Start the ${link("cluster", "target cluster")} and its TLS recovery route.</p>
+<ol>
+  <li>From <strong>Runtime Settings → Backup and Recovery</strong>, select <strong>Restore backup</strong>, enter the target site's HTTPS URL, and select <strong>Open target site</strong>. You can also open its <code>/recovery</code> page directly.</li>
+  <li>Enter the target's <strong>Recovery token</strong> and select <strong>Read status</strong>. Under <strong>Offsite backups</strong>, choose a <strong>Recovery checkpoint</strong> from the target inbox and select <strong>Check recovery point</strong>. Review the checkpoint time and table and file counts.</li>
+  <li>Select <strong>Start restore → Confirm restore</strong> and follow <strong>Restore progress</strong>. The console shows backup verification, file and local-table restore, PostgreSQL restore when applicable, and control-state import. If import stops after writing began, retry with the same checkpoint.</li>
+</ol>
+<figure>${image("ops-restore-target", "English Restore backup dialog showing the target site HTTPS address and the Open target site button")}<figcaption>Open the isolated target site before selecting and checking a recovery point.</figcaption></figure>`],
       ["cutover", "4. Pass acceptance and reopen traffic", ({ link }) => `
-<p>Run acceptance from the target's <code>/recovery</code> page. It verifies the checkpoint, the restored data, each published model revision, and the exact canary result. Check readiness through the actual client HTTPS origin before cutting traffic. Keep source writes paused until verification and cutover finish.</p>
-<p>Restore memberships and issue fresh application credentials as required. Restored user and service-account access is disabled and old sessions are cleared. Verify old credentials are rejected, new roles are enforced, and each client protocol and ${link("monitoring", "monitoring check")} recovers through production ingress.</p>`],
+<ol>
+  <li>On the target <code>/recovery</code> page after import, select <strong>Verify recovery manifest</strong>. Check the digest match and the table, file, and verification query counts.</li>
+  <li>Under <strong>Business query verification</strong>, select <strong>Verify recovery → Start verification</strong>. The target verifies the restored data, the published revisions listed in the manifest, and the exact expected query rows.</li>
+  <li>Wait for <strong>Ready for cutover</strong>. This indicates verification passed and the same HTTPS origin returned a ready <code>/readyz</code> response. Run a known-result query again through the actual client endpoint. Keep source writes paused until verification and cutover finish.</li>
+</ol>
+<p>For the ${link("quickstart", "Parquet demo")}, the transfer count returns one row with <code>4</code>. Compare the actual rows and the model’s published revision with the manifest before switching traffic.</p>
+<p>Restore memberships and issue fresh application credentials as required. Restored user and service-account access is disabled and old sessions are cleared. Verify old credentials are rejected, new roles are enforced, and each enabled client protocol and ${link("monitoring", "monitoring check")} works through production ingress. If local tables use schedules, reopen their refresh settings and save them to resume scheduled refresh and reconciliation.</p>`],
     ],
   },
 };

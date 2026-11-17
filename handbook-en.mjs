@@ -32,6 +32,8 @@ export default {
   <li><strong>${link("access", "Configure access")}</strong> Grant the permissions an analyst, application, or AI client needs.</li>
   <li><strong>${link("mcp", "Connect an AI client")}</strong> Enable MCP services, issue a personal token, and verify the tools it can use.</li>
   <li><strong>${link("cluster", "Install a cluster")}</strong> Start Workers, then configure Coordinator failover and verify ingress.</li>
+  <li><strong>${link("monitoring", "Monitor a deployment")}</strong> Check model, source, and Worker health and configure logs and telemetry.</li>
+  <li><strong>${link("recovery", "Back up and recover")}</strong> Create a checkpoint, restore it at a target site, and verify the result before cutover.</li>
   <li><strong>${link("troubleshoot", "Troubleshoot an issue")}</strong> Start from the symptom and check the appropriate layer.</li>
 </ul>`],
     ],

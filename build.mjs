@@ -26,6 +26,10 @@ const screenshotHeights = {
   "mcp-settings": 861,
   "mcp-client-setup": 1077,
   "mcp-verify": 1713,
+  "ops-health": 805,
+  "ops-telemetry": 805,
+  "ops-backups": 805,
+  "ops-restore-target": 805,
 };
 const connectorAssets = [
   ["postgres", "PostgreSQL"],

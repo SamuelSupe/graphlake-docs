@@ -1,7 +1,8 @@
+import clients from "./clients-en.mjs";
 import troubleshoot from "./troubleshooting-en.mjs";
 import {
-  boltClient, components, downloadSample, followPath, gremlinClient,
-  httpClient, outgoingCounts, pageRank, route, runSample, sampleCatalog, sampleWorkbench, transferTotals,
+  components, downloadSample, followPath, outgoingCounts, pageRank, route,
+  runSample, sampleCatalog, sampleWorkbench, transferTotals,
   twoHopTraversal,
 } from "./handbook-examples.mjs";
 
@@ -29,7 +30,7 @@ export default {
 </ul>`],
       ["integrate-and-operate", "Connect applications and operate", ({ link }) => `
 <ul class="task-list">
-  <li><strong>${link("clients", "Connect an application")}</strong> Run a revision-pinned HTTP query or use a Bolt or Gremlin driver.</li>
+  <li><strong>${link("clients", "Connect an application")}</strong> Authenticate and run a downloadable HTTP, Bolt, or Gremlin example.</li>
   <li><strong>${link("access", "Configure access")}</strong> Grant the permissions an analyst, application, or AI client needs.</li>
   <li><strong>${link("mcp", "Connect an AI client")}</strong> Enable MCP services, issue a personal token, and verify the tools it can use.</li>
   <li><strong>${link("cluster", "Install a cluster")}</strong> Start Workers, then configure Coordinator failover and verify ingress.</li>
@@ -146,34 +147,7 @@ ${code("Shell", route)}
 <p>In a ${link("cluster", "cluster")}, supported PageRank and component workloads can use partitioned CSR. Community detection and Node2Vec work on a whole projection on the execution node. Check available operations, memory budgets, and weighting rules in the ${ref("docs/reference.zh-CN.md#整图算法", "algorithm reference")}.</p>`],
     ],
   },
-  clients: {
-    title: "Connect an application",
-    description: "Run a read-only query using the HTTP API, a Bolt driver, or a Gremlin WebSocket client.",
-    sections: [
-      ["prepare", "Prepare an application identity", ({ link }) => `
-<ol>
-  <li>Publish the target model and note its ID. The code below uses <code>graph</code> from ${link("first-model", "the sample")}.</li>
-  <li>In <strong>Access Control</strong>, create a dedicated service account, such as <code>analytics</code>. Generate its token with <code>openssl rand -hex 32</code> and assign a role with query permission for that model. See ${link("access", "Users and permissions")}.</li>
-  <li>Set <code>GRAPHLAKE_TOKEN</code> in the client process from your secret store. Set <code>GRAPHLAKE_ORIGIN</code> to the service’s HTTPS origin. For the local sample, use <code>http://127.0.0.1:7347</code>.</li>
-</ol>`],
-      ["http", "Run a revision-pinned HTTP query", ({ code }) => `
-<p>Save the following Python 3 script and run it with the client’s environment. It discovers the model’s <code>active_revision</code>, then sends a unique request ID, the chosen revision, and the query. <code>parameters_json</code> is a JSON string containing the Cypher parameters.</p>
-${code("Python", httpClient)}
-<p class="note"><strong>Expected result</strong> <code>[['Alice']]</code> for the sample. HTTP preview rows represent cells as strings or null. The response also reports the model revision, source information, and whether the preview is truncated.</p>
-<p>For full results, grant export in addition to query. Request <code>capture_result: true</code>, check <code>snapshot_complete</code>, and fetch <code>GET /api/v1/models/{id}/results/{snapshot}</code> while the snapshot is available.</p>`],
-      ["bolt", "Read through a Bolt driver", ({ code, ref }) => `
-<p>Set <code>--driver-model graph --bolt-port 7687</code> on the service to enable Bolt and expose it through TLS as shown in the ${ref("deploy/README.md#客户端接入", "client configuration")}. Use a direct <code>bolt+s://</code> URI in production and select the published model with the driver’s database argument.</p>
-${code("Python · neo4j", boltClient)}
-<p>The release’s driver checks use <code>neo4j==5.28.2</code>. Auto-commit is available across supported sources. Explicit read transactions are supported for PostgreSQL and Parquet. Select compatible client versions from the protocol reference for your release.</p>`],
-      ["gremlin", "Read through Gremlin WebSocket", ({ code }) => `
-<p>Set <code>--driver-model graph</code> on the service to enable Gremlin and set its default model. Forward WebSocket upgrades on <code>/gremlin</code> through your HTTPS proxy. The traversal source name can select an authorized model.</p>
-${code("Python · gremlinpython", gremlinClient)}
-<p>Use <code>gremlinpython==3.7.4</code> for this example. It prints Alice, Bob, and Carol. Use supported read-only traversals and a GraphSON 3 or GraphBinary 1.0 serializer.</p>`],
-      ["errors", "Handle revisions and access failures", ({ link }) => `
-<p>If a model was republished after discovery, reload the active revision and reissue the read with a new request ID once you have confirmed that the new mapping is acceptable. For <code>401</code>, check the account name and token. For <code>403</code>, check the model role and tenant scope. Investigate readiness and source errors before retrying long queries.</p>
-<p>For AI clients use ${link("mcp", "MCP")}. For readiness and source failures see ${link("troubleshoot", "Troubleshooting")}.</p>`],
-    ],
-  },
+  clients,
   access: {
     title: "Users and permissions",
     description: "Set up people, application service accounts, and AI clients with permissions on the models they need.",

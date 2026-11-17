@@ -74,63 +74,26 @@ export const route = `/opt/graphlake/current/bin/graphlake --catalog graph.yaml 
   --edge Transfer --weight amount \\
   --start-label Account --start 1 --target-label Account --target 3`;
 
-export const httpClient = `import base64
-import json
-import os
-import uuid
-from urllib.parse import quote
-from urllib.request import Request, urlopen
+export const clientWorkbench = sampleWorkbench + " --driver-model graph --bolt-port 7687";
 
-origin = os.environ["GRAPHLAKE_ORIGIN"].rstrip("/")
-model_id = os.environ.get("GRAPHLAKE_MODEL", "graph")
-credentials = "svc/analytics:" + os.environ["GRAPHLAKE_TOKEN"]
-basic = base64.b64encode(credentials.encode()).decode()
+export const clientEnvironment = `export GRAPHLAKE_ORIGIN=http://127.0.0.1:7347
+export GRAPHLAKE_BOLT_URI=bolt://127.0.0.1:7687
+export GRAPHLAKE_GREMLIN_URL=ws://127.0.0.1:7347/gremlin
+export GRAPHLAKE_USERNAME=svc/analytics
+export GRAPHLAKE_MODEL=graph
+printf 'GraphLake service token: '
+read -rs GRAPHLAKE_TOKEN
+printf '\\n'
+export GRAPHLAKE_TOKEN`;
 
-def call(path, body=None):
-    headers = {"Authorization": "Basic " + basic}
-    data = None
-    if body is not None:
-        headers.update({"Content-Type": "application/json", "Origin": origin})
-        data = json.dumps(body).encode()
-    with urlopen(Request(origin + "/api/v1" + path, data, headers), timeout=15) as response:
-        return json.load(response)
+export const clientVenv = `python3 -m venv .venv
+. .venv/bin/activate`;
 
-models = call("/models")
-model = next(model for model in models if model["id"] == model_id)
-result = call("/models/" + quote(model_id, safe="") + "/query", {
-    "request_id": str(uuid.uuid4()),
-    "model_revision": model["active_revision"],
-    "language": "cypher",
-    "query": "MATCH (a:Account) WHERE a.id = $id RETURN a.name AS account",
-    "parameters_json": json.dumps({"id": 1}),
-    "timeout_ms": 10000,
-})
-print(result["rows"])
-`;
+export const boltRun = `python -m pip install 'neo4j==5.28.2'
+python bolt_query.py`;
 
-export const boltClient = `import os
-from neo4j import GraphDatabase
+export const gremlinRun = `python -m pip install 'gremlinpython==3.7.4'
+python gremlin_query.py`;
 
-auth = ("svc/analytics", os.environ["GRAPHLAKE_TOKEN"])
-with GraphDatabase.driver("bolt+s://graphlake.example:7687", auth=auth) as driver:
-    with driver.session(database="graph") as session:
-        records = session.run("MATCH (a:Account) RETURN a.name AS name ORDER BY name")
-        print([record["name"] for record in records])`;
-
-export const gremlinClient = `import os
-from gremlin_python.driver.driver_remote_connection import DriverRemoteConnection
-from gremlin_python.driver.serializer import GraphSONSerializersV3d0
-from gremlin_python.process.anonymous_traversal import traversal
-
-conn = DriverRemoteConnection(
-    "wss://graphlake.example/gremlin",
-    "graph",
-    username="svc/analytics",
-    password=os.environ["GRAPHLAKE_TOKEN"],
-    message_serializer=GraphSONSerializersV3d0(),
-)
-try:
-    g = traversal().with_remote(conn)
-    print(g.V().hasLabel("Account").values("name").order().to_list())
-finally:
-    conn.close()`;
+export const clientScript = (filename) =>
+  readFileSync(new URL(`./assets/examples/clients/${filename}`, import.meta.url), "utf8").trimEnd();

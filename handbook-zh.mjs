@@ -1,7 +1,8 @@
+import clients from "./clients-zh.mjs";
 import troubleshoot from "./troubleshooting-zh.mjs";
 import {
-  boltClient, components, downloadSample, followPath, gremlinClient,
-  httpClient, outgoingCounts, pageRank, route, runSample, sampleCatalog, sampleWorkbench, transferTotals,
+  components, downloadSample, followPath, outgoingCounts, pageRank, route,
+  runSample, sampleCatalog, sampleWorkbench, transferTotals,
   twoHopTraversal,
 } from "./handbook-examples.mjs";
 
@@ -29,7 +30,7 @@ export default {
 </ul>`],
       ["integrate-and-operate", "应用接入与运维", ({ link }) => `
 <ul class="task-list">
-  <li><strong>${link("clients", "接入应用")}</strong> 通过 HTTP 查询指定模型版本，或使用 Bolt 和 Gremlin 驱动。</li>
+  <li><strong>${link("clients", "接入应用")}</strong> 配置服务账号，运行可下载的 HTTP、Bolt 或 Gremlin 查询示例。</li>
   <li><strong>${link("access", "配置权限")}</strong> 为分析人员、服务账号或 AI 客户端授予所需权限。</li>
   <li><strong>${link("mcp", "连接 AI 客户端")}</strong> 开启 MCP 服务、签发个人令牌，并验证客户端可用的工具。</li>
   <li><strong>${link("cluster", "安装集群")}</strong> 启动 Worker，配置 Coordinator 故障接管并验证业务入口。</li>
@@ -146,34 +147,7 @@ ${code("Shell", route)}
 <p>${link("cluster", "集群")}上的部分 PageRank 和弱连通分量任务可使用分区 CSR。社区检测和 Node2Vec 在执行节点上使用完整投影。支持的操作、内存预算和权重约束见${ref("docs/reference.zh-CN.md#整图算法", "算法参考")}。</p>`],
     ],
   },
-  clients: {
-    title: "接入应用",
-    description: "通过 HTTP API、Bolt 驱动或 Gremlin WebSocket 客户端运行只读查询。",
-    sections: [
-      ["prepare", "为应用准备身份", ({ link }) => `
-<ol>
-  <li>发布目标模型并记下 ID。下方代码使用${link("first-model", "样例")}中的 <code>graph</code>。</li>
-  <li>在<strong>权限管理</strong>中创建专用服务账号，例如 <code>analytics</code>，用 <code>openssl rand -hex 32</code> 生成令牌，再分配该模型的查询权限。参见${link("access", "用户与权限")}。</li>
-  <li>在客户端进程中从密钥存储读取 <code>GRAPHLAKE_TOKEN</code>，并将 <code>GRAPHLAKE_ORIGIN</code> 设为服务的 HTTPS 源地址。本机样例使用 <code>http://127.0.0.1:7347</code>。</li>
-</ol>`],
-      ["http", "通过 HTTP 查询指定版本", ({ code }) => `
-<p>保存下方 Python 3 脚本，在已配置环境变量的客户端运行。它先读取模型的 <code>active_revision</code>，再带上唯一请求 ID、该版本和查询语句。<code>parameters_json</code> 是包含 Cypher 参数的 JSON 字符串。</p>
-${code("Python", httpClient)}
-<p class="note"><strong>预期结果</strong> 样例返回 <code>[['Alice']]</code>。HTTP 预览以字符串或 null 表示单元格，响应还包含模型版本、来源信息和截断状态。</p>
-<p>需要完整结果时，同时授予查询和导出权限。把 <code>capture_result</code> 设为 <code>true</code>，确认 <code>snapshot_complete</code> 后，在快照有效期内访问 <code>GET /api/v1/models/{id}/results/{snapshot}</code>。</p>`],
-      ["bolt", "通过 Bolt 驱动读取", ({ code, ref }) => `
-<p>用 <code>--driver-model graph --bolt-port 7687</code> 启用监听，并按${ref("deploy/README.md#客户端接入", "客户端配置")}设置 TLS。生产连接使用 <code>bolt+s://</code> 直连 URI，通过驱动的数据库参数选择已发布模型。</p>
-${code("Python · neo4j", boltClient)}
-<p>发行版驱动验证使用 <code>neo4j==5.28.2</code>。已支持的来源可以使用自动提交。显式只读事务支持 PostgreSQL 和 Parquet。客户端版本按发行版协议参考选择。</p>`],
-      ["gremlin", "通过 Gremlin WebSocket 读取", ({ code }) => `
-<p>用 <code>--driver-model graph</code> 启用 Gremlin 并选定默认模型。HTTPS 代理须转发 <code>/gremlin</code> 上的 WebSocket 升级请求。遍历源名称可指定获准的模型。</p>
-${code("Python · gremlinpython", gremlinClient)}
-<p>本例使用 <code>gremlinpython==3.7.4</code>，打印 Alice、Bob 和 Carol。使用支持的只读遍历，以及 GraphSON 3 或 GraphBinary 1.0 编码器。</p>`],
-      ["errors", "处理版本与权限错误", ({ link }) => `
-<p>如果模型在发现后已重新发布，先读取当前的生效版本，确认映射符合预期后再用新的请求 ID 执行只读查询。收到 <code>401</code> 时检查账号和令牌。收到 <code>403</code> 时检查模型权限和租户范围。长查询失败时，先确定服务是否就绪、来源是否可读，再重试。</p>
-<p>AI 客户端使用 ${link("mcp", "MCP")}。服务或来源异常参见${link("troubleshoot", "故障排查")}。</p>`],
-    ],
-  },
+  clients,
   access: {
     title: "用户与权限",
     description: "为控制台用户、应用服务账号和 AI 客户端配置它们实际需要的模型权限。",

@@ -23,6 +23,8 @@ const screenshotHeights = {
   "query-parameters": 1130,
   "query-neighbors": 1189,
   "access-model-role": 861,
+  "clients-published-model": 805,
+  "clients-service-account": 805,
   "mcp-settings": 861,
   "mcp-client-setup": 1077,
   "mcp-verify": 1713,

@@ -4,6 +4,7 @@ import {
 } from "./examples.mjs";
 import operations from "./operations-zh.mjs";
 import handbook from "./handbook-zh.mjs";
+import { datasourcePage } from "./datasources.mjs";
 import { directTransfers, postgresSource, syncDemoSetup, syncDemoUpdate, workbenchPath } from "./handbook-examples.mjs";
 
 const workbenchAlt = "GraphLake 查询工作台，展示 Parquet 示例中的三个账户及其转账关系";
@@ -83,17 +84,13 @@ ${code("Cypher", graphQuery)}
 <p>要查询自己的数据，可以继续${link("sources", "连接数据源")}并${link("model", "发布图模型")}。</p>`],
       ],
     },
+    datasources: datasourcePage(true),
     sources: {
       title: "连接数据",
       description: "为 GraphLake 提供只读访问，用已有的数据表、数仓视图或文件定义实体与关系。",
       sections: [
-        ["choose", "选择连接器", ({ ref }) => `
-<dl class="plain-list">
-  <dt>数据库</dt><dd>PostgreSQL、MySQL、MariaDB、SQLite、SQL Server、Oracle、MongoDB、DuckDB、TiDB 和 OceanBase（MySQL 模式）。</dd>
-  <dt>数仓与湖仓</dt><dd>Snowflake、BigQuery、ClickHouse、Trino、Spanner、SAP HANA、Databricks SQL、Apache Doris、StarRocks、Iceberg 和 Delta Lake。</dd>
-  <dt>文件与对象存储</dt><dd>CSV、JSON Lines 和 Parquet。可配置 S3、MinIO、OSS、TOS、COS、Azure Blob Storage 或 GCS，浏览对象并映射文件。</dd>
-</dl>
-<p>Oracle 直连需要在服务端安装 Oracle Instant Client。也可以通过已配置的 Trino catalog 访问 SQL Server、Oracle、Hive、Hudi、MongoDB、Elasticsearch 和 Redshift。配置细节与支持的类型见${ref("docs/reference.zh-CN.md#图映射与连接器", "连接器参考")}。</p>`],
+        ["choose", "选择连接器", ({ link }) => `
+<p>在${link("datasources", "数据源目录")}查找数据库、数仓、湖仓表或文件存储对应的连接器，了解必填配置和运行依赖。</p>`],
         ["configure", "在工作台添加数据源", ({ image }) => `
 <p>使用管理员账号登录。要跟着截图操作，先<a href="#sqlite-demo">准备 SQLite 样例</a>，再添加连接。</p>
 <ol>
@@ -258,18 +255,44 @@ ${code("YAML", "managed_local_tables: true\nlocal_snapshot_retention_seconds: 86
       title: "连接 AI 客户端",
       description: "通过模型上下文协议（MCP），让 AI 客户端查询已发布的模型，或执行获准的建模操作。",
       sections: [
-        ["enable", "开启所需的 MCP 服务", () => `
-<p>管理员在<strong>运行配置 → MCP 服务</strong>中分别启用查询和建模。两项服务默认关闭。需要通过客户端发布时，再开启发布权限。</p>
+        ["enable", "开启 MCP 查询和建模服务", ({ image, link }) => `
+<ol>
+  <li>管理员先在${link("access", "权限管理")}为目标账号勾选<strong>允许接入 MCP</strong>，并授予所需的模型操作权限。</li>
+  <li>打开<strong>运行配置 → MCP 服务</strong>，按需打开<strong>启用查询服务</strong>和<strong>启用建模服务</strong>。两项默认关闭。可在查询区域设置返回行数上限和超时。</li>
+  <li>点击<strong>保存 MCP 配置</strong>，设置立即生效。如果需要让客户端发布模型，还要单独开启<strong>允许发布模型</strong>，并给账号授予目标模型的<strong>发布</strong>权限。</li>
+</ol>
 <dl class="plain-list">
   <dt><code>/mcp/query</code></dt><dd>列出可见模型，获取已发布的结构，执行有界的只读查询。</dd>
-  <dt><code>/mcp/modeling</code></dt><dd>读取、校验、创建和保存获准的草稿。发布需要服务端开启且账号具备发布权限。</dd>
-</dl>`],
+  <dt><code>/mcp/modeling</code></dt><dd>读取、校验、创建和保存获准的草稿。创建草稿需要现有模板模型和预授权目标标识上的建模权限。</dd>
+</dl>
+<figure>${image("mcp-settings", "英文 MCP Services 页面分别开启查询与建模服务，发布开关未勾选")}<figcaption>按客户端需要分别开启查询、建模服务。</figcaption></figure>`],
+        ["token", "生成个人令牌", ({ image }) => `
+<ol>
+  <li>使用 AI 客户端要代表的成员账号登录，打开侧栏<strong>AI</strong>，在<strong>我的权限</strong>核对模型范围。</li>
+  <li>在<strong>个人令牌</strong>区域点击<strong>生成个人令牌</strong>，再点击<strong>复制令牌</strong>。令牌明文在签发时显示，离开或刷新页面前将它保存到客户端的凭据设置。</li>
+</ol>
+<p>每位用户有一个有效的个人令牌，有效期为 90 天。通过<strong>管理令牌</strong>可以重新生成或撤销令牌，重新生成后旧令牌失效。对于只允许 MCP 接入的成员，管理员可在<strong>权限管理 → 成员</strong>中勾选<strong>签发 MCP 令牌</strong>，再保存成员。</p>
+<figure>${image("mcp-client-setup", "英文 AI 工作区显示 Generate personal token、MCP 服务选择和 Streamable HTTP 连接信息")}<figcaption>用客户端将代表的成员身份生成令牌。</figcaption></figure>`],
         ["connect", "在客户端注册 GraphLake", ({ code }) => `
-<p>在控制台打开 <strong>AI</strong>，生成个人令牌并存入客户端的凭据配置。按需为每个服务添加一项 Streamable HTTP MCP 配置。将示例域名替换为 GraphLake 对外的 HTTPS 地址，在 <code>Authorization</code> 请求头中使用令牌。</p>
+<ol>
+  <li>在<strong>AI → 添加到 Agent</strong>中选择<strong>查询 MCP</strong>或<strong>建模 MCP</strong>。两个服务都可用时会显示选择器。复制<strong>MCP 地址</strong>。</li>
+  <li>在客户端 MCP 设置里新建 <strong>Streamable HTTP</strong> 服务，粘贴地址，认证方式选择 <strong>Bearer Token</strong>，或配置请求头 <code>Authorization: Bearer &lt;token&gt;</code>。同时使用两个端点时，各添加一项。</li>
+  <li>使用 JSON 配置的客户端可展开<strong>使用 JSON 配置</strong>，也可改用下方示例。远程客户端应使用 GraphLake 配置的对外 HTTPS 地址，并在客户端凭据配置中替换令牌占位符。</li>
+</ol>
 ${code("JSON", mcpConfig)}
-<p>令牌沿用所属账号当前的模型权限与租户范围。管理员也可为允许接入 MCP 的成员签发令牌。在 AI 工作区测试连接，核对认证身份和可见工具。</p>`],
-        ["use", "发起第一次请求", ({ ref }) => `
-<p>请客户端先列出有权访问的模型，再查看其已发布结构并执行一条小查询。建模时先读取当前草稿和版本，校验并保存，审核后再发布。角色检查、令牌轮换和查询限制见${ref("docs/mcp.md", "MCP 参考")}。</p>`],
+<p>两个端点可以使用同一个个人令牌。每次调用按令牌所属账号当前的模型操作权限和租户范围执行。</p>`],
+        ["verify", "验证 MCP 连接", ({ image }) => `
+<ol>
+  <li>在 GraphLake 的<strong>AI</strong>工作区选好服务，展开<strong>验证连接</strong>，点击<strong>测试 MCP 连接</strong>。如页面提示需要令牌，粘贴已保存的个人令牌。</li>
+  <li>核对认证用户名，展开<strong>查看模型与工具</strong>，对照角色检查模型标识和可用工具。同时添加两个端点时，对另一端点重复测试。</li>
+  <li>回到 AI 客户端，重新连接或刷新该服务的工具列表，调用 <code>list_models</code>。看到账号有权访问的模型，即可确认客户端的地址、传输、凭据和权限配置。</li>
+</ol>
+<p>客户端返回 <code>401</code> 时，检查 Bearer 请求头和令牌是否过期、轮换或撤销。返回 <code>403</code> 时，检查账号的<strong>允许接入 MCP</strong>设置和模型角色。返回 <code>404</code> 时，核对地址及对应服务是否已开启。客户端的传输方式应为 Streamable HTTP。</p>
+<figure>${image("mcp-verify", "英文 AI 连接测试显示认证身份 demo-analyst、一个可见模型和三个查询工具")}<figcaption>连接成功后，核对认证用户、可见模型和工具，再开始查询或编辑草稿。</figcaption></figure>`],
+        ["use", "发起第一次请求", ({ code, ref }) => `
+<p>在查询端点，让客户端先调用 <code>list_models</code>，再对已发布模型调用 <code>get_schema</code> 和 <code>query</code>。转账样例运行下面的只读查询会返回 <code>3</code>。</p>
+${code("Cypher", "MATCH (n:Account) RETURN count(n) AS accounts")}
+<p>在建模端点，用 <code>get_model</code> 确认能读取草稿。需要修改时，先读取草稿版本、校验变更，保存后审核再发布。工具参数、令牌轮换和查询限制见${ref("docs/mcp.md", "MCP 参考")}。</p>`],
       ],
     },
     "use-cases": {

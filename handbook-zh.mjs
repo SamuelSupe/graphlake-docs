@@ -19,6 +19,7 @@ export default {
 <ul class="task-list">
   <li><strong>${link("concepts", "理解图模型")}</strong> 了解数据源、业务键、关系与发布版本之间的联系。</li>
   <li><strong>${link("sources", "接入自己的数据")}</strong> 选择连接器、查看字段，决定直接查询或加载本地副本。</li>
+  <li><strong>${link("datasources", "浏览数据源目录")}</strong> 查找直连、经 Trino 接入和对象存储的配置方式。</li>
   <li><strong>${link("local-tables", "同步本地副本")}</strong> 配置全量或增量刷新，并查看加载历史。</li>
   <li><strong>${link("model", "在控制台建立图模型")}</strong> 跟着画布教程配置业务键和端点，再发布模型。</li>
   <li><strong>${link("query", "使用查询与图探索工作台")}</strong> 设置 Cypher 参数、切换结果视图，并展开节点的邻居。</li>
@@ -29,6 +30,7 @@ export default {
 <ul class="task-list">
   <li><strong>${link("clients", "接入应用")}</strong> 通过 HTTP 查询指定模型版本，或使用 Bolt 和 Gremlin 驱动。</li>
   <li><strong>${link("access", "配置权限")}</strong> 为分析人员、服务账号或 AI 客户端授予所需权限。</li>
+  <li><strong>${link("mcp", "连接 AI 客户端")}</strong> 开启 MCP 服务、签发个人令牌，并验证客户端可用的工具。</li>
   <li><strong>${link("cluster", "安装集群")}</strong> 启动 Worker，配置 Coordinator 故障接管并验证业务入口。</li>
   <li><strong>${link("troubleshoot", "定位故障")}</strong> 从症状入手，检查对应的服务、模型或查询层。</li>
 </ul>`],
@@ -179,19 +181,23 @@ ${code("Python · gremlinpython", gremlinClient)}
   <dt>服务账号</dt><dd>为每个应用分配独立令牌和模型角色。${link("clients", "HTTP、Bolt 和 Gremlin 客户端")}使用 <code>svc/&lt;名称&gt;</code> 作为用户名。</dd>
   <dt>个人 MCP 令牌</dt><dd>${link("mcp", "AI 客户端")}沿用令牌所有者的模型权限与租户范围。</dd>
 </dl>`],
-      ["roles", "为指定模型分配角色", () => `
+      ["roles", "给用户分配指定模型的权限", ({ image, link }) => `
 <ol>
-  <li>用管理员登录，打开<strong>权限管理</strong>，创建成员或服务账号。</li>
-  <li>创建角色，添加目标模型并勾选所需操作，把该身份加入角色。</li>
-  <li>用该身份在目标模型跑一条小查询，并验证角色范围外的模型无法查看。</li>
+  <li>用管理员账号登录，在<strong>权限管理 → 成员</strong>点击<strong>新建成员</strong>，或编辑已有成员。新建时选<strong>人工账号</strong>，填写用户名和初始密码。按需要设置<strong>允许登录控制台</strong>和<strong>允许接入 MCP</strong>，点击<strong>保存成员</strong>。</li>
+  <li>进入<strong>角色列表 → 新建角色</strong>，或编辑已有角色。填写角色名称，在<strong>加入角色的成员</strong>中勾选目标用户。</li>
+  <li>在<strong>按模型授权</strong>区域按模型标识找到目标，勾选所需操作。截图中的 <code>demo-analyst</code> 获得 <code>transfer-demo</code> 的<strong>查询</strong>和<strong>建模</strong>权限。点击<strong>保存角色</strong>。</li>
+  <li>在角色列表核对成员、模型和操作，再用该成员登录，在${link("query", "查询工作台")}运行一条小查询。启用 MCP 后，也可在<strong>AI → 我的权限</strong>核对可访问的模型与能力。角色变更后，受影响的控制台成员需要重新登录。</li>
 </ol>
+<figure>${image("access-model-role", "英文角色配置界面为 demo-analyst 勾选 transfer-demo 的 Query 和 Modeling 权限")}<figcaption>在同一角色内勾选成员和该模型允许的操作。</figcaption></figure>`],
+      ["actions", "选择模型允许的操作", ({ link }) => `
 <dl class="plain-list">
   <dt>查询和导出</dt><dd>查询权限允许查看结构、查询和探索。完整 Arrow 导出要求同一模型同时具备查询和导出权限。</dd>
   <dt>建模和发布</dt><dd>建模者在已批准的数据源范围内编辑和校验草稿。发布权限控制激活、回退或下线模型。管理员负责连接器配置和物理表范围。</dd>
-  <dt>审计</dt><dd>审计角色可查看模型配置和版本历史。</dd>
-</dl>`],
+  <dt>只读审计</dt><dd>查看模型配置和版本历史。</dd>
+</dl>
+<p>成员需要通过 MCP 创建模型时，在<strong>预授权新模型标识</strong>填入目标标识并点击<strong>添加模型授权</strong>。目标标识和现有模板模型都需要建模权限。工具发现与授权的关系见${link("mcp", "MCP 指南")}。</p>`],
       ["tenants", "按租户限制可读数据", () => `
-<p>为模型角色设置逻辑分区条件，例如 <code>tenant_id = 1</code>。所有相关节点、边的业务键以及边的两端都须包含 <code>tenant_id</code>，字段类型须一致。GraphLake 在受支持的查询、探索和导出入口强制应用该范围。</p>
+<p>勾选模型的<strong>查询</strong>权限后，展开<strong>限定租户范围</strong>。例如将<strong>租户字段</strong>填为 <code>tenant_id</code>，将<strong>租户值（JSON）</strong>填为 <code>1</code>，再保存角色。相关节点、边的业务键以及边的两端都须包含同一字段，且类型一致。GraphLake 在受支持的查询、探索和导出入口应用该范围。</p>
 <p>同一模型出现相互冲突的租户值时会拒绝查询。需要隔离敏感字段时，使用数据库视图或独立的模型投影。共享 CSR 代次供无租户范围限制的查询使用。</p>`],
       ["rotate", "轮换凭据并验证", ({ ref }) => `
 <p>在服务账号设置中轮换应用令牌。更新密钥存储并重新连接，再确认旧令牌无法访问。角色变更可能使已有会话、连接和下载票据失效。</p>

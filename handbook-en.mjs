@@ -19,6 +19,7 @@ export default {
 <ul class="task-list">
   <li><strong>${link("concepts", "Understand the graph model")}</strong> Learn how sources, keys, edges, and published revisions fit together.</li>
   <li><strong>${link("sources", "Connect your data")}</strong> Choose a connector, check fields, and decide whether to query directly or load a local copy.</li>
+  <li><strong>${link("datasources", "Browse supported data sources")}</strong> Compare direct connectors, Trino routes, and object storage providers.</li>
   <li><strong>${link("local-tables", "Sync a local copy")}</strong> Configure full or incremental refresh and check the load history.</li>
   <li><strong>${link("model", "Model a graph in the console")}</strong> Follow the canvas walkthrough to map business keys and endpoints, then publish.</li>
   <li><strong>${link("query", "Use the query and graph workspace")}</strong> Set Cypher parameters, switch result views, and expand a node’s neighbors.</li>
@@ -29,6 +30,7 @@ export default {
 <ul class="task-list">
   <li><strong>${link("clients", "Connect an application")}</strong> Run a revision-pinned HTTP query or use a Bolt or Gremlin driver.</li>
   <li><strong>${link("access", "Configure access")}</strong> Grant the permissions an analyst, application, or AI client needs.</li>
+  <li><strong>${link("mcp", "Connect an AI client")}</strong> Enable MCP services, issue a personal token, and verify the tools it can use.</li>
   <li><strong>${link("cluster", "Install a cluster")}</strong> Start Workers, then configure Coordinator failover and verify ingress.</li>
   <li><strong>${link("troubleshoot", "Troubleshoot an issue")}</strong> Start from the symptom and check the appropriate layer.</li>
 </ul>`],
@@ -179,19 +181,23 @@ ${code("Python · gremlinpython", gremlinClient)}
   <dt>Service account</dt><dd>Give each application its own token and model role. Use the username <code>svc/&lt;name&gt;</code> for ${link("clients", "HTTP, Bolt, and Gremlin clients")}.</dd>
   <dt>Personal MCP token</dt><dd>Use the owner’s model permissions and tenant scope for ${link("mcp", "authorized AI work")}.</dd>
 </dl>`],
-      ["roles", "Grant a role on the intended model", () => `
+      ["roles", "Assign model permissions to a user", ({ image, link }) => `
 <ol>
-  <li>Sign in as an administrator and open <strong>Access Control</strong>. Create a member or service account.</li>
-  <li>Create a role, add the target model, and select actions. Add the identity to that role.</li>
-  <li>Verify the account by running a small query on the intended model and checking access to a model outside its role.</li>
+  <li>Sign in as an administrator. In <strong>Access Control → Members</strong>, choose <strong>New member</strong> for a new user or <strong>Edit</strong> for an existing one. Select <strong>User account</strong>, enter the username and initial password for a new user, and set <strong>Allow console sign-in</strong> and <strong>Allow MCP access</strong> for the entry points they need. Select <strong>Save member</strong>.</li>
+  <li>Switch to <strong>Roles → New role</strong>, or edit an existing role. Give the role a name and tick the user under <strong>Role members</strong>.</li>
+  <li>Under <strong>Permissions by model</strong>, find the target model by its ID and tick the actions the user needs. In the screenshot the member <code>demo-analyst</code> gets <strong>Query</strong> and <strong>Modeling</strong> on <code>transfer-demo</code>. Select <strong>Save role</strong>.</li>
+  <li>Check the model and member in the roles list. Then sign in as the member and run a small query in ${link("query", "Query")}. With MCP enabled, open <strong>AI → My permissions</strong> and compare the listed models and capabilities with the saved role. After a role change, affected console users need to sign in again.</li>
 </ol>
+<figure>${image("access-model-role", "English New role dialog showing demo-analyst assigned Query and Modeling on the transfer-demo model")}<figcaption>Assign the member and the permissions on the intended model in the same role.</figcaption></figure>`],
+      ["actions", "Choose model actions", ({ link }) => `
 <dl class="plain-list">
-  <dt>Query and export</dt><dd>Query covers schema inspection, reads, and graph exploration. Full Arrow export requires both query and export on the same model.</dd>
-  <dt>Modeling and publication</dt><dd>Modelers can edit and validate drafts within approved sources. Publication controls activating, rolling back, or taking a model offline. Administrators manage connectors and physical table access.</dd>
-  <dt>Audit</dt><dd>Review configuration and revision history with an audit role.</dd>
-</dl>`],
+  <dt>Query and Export</dt><dd>Query allows schema inspection, read-only queries, and graph exploration. Full Arrow export requires both Query and Export on the same model.</dd>
+  <dt>Modeling and Publish</dt><dd>Modeling allows draft edits and validation within approved sources and tables. Publish allows activation, rollback, and taking a model offline. Administrators manage data connections and which physical tables can be used.</dd>
+  <dt>Read-only audit</dt><dd>Inspect configuration and version history.</dd>
+</dl>
+<p>For a user who needs to create a model through MCP, add its future ID under <strong>Preauthorize a new model ID</strong> and grant Modeling on both that ID and an existing template model. See ${link("mcp", "the MCP guide")} for how those grants affect tool discovery.</p>`],
       ["tenants", "Constrain rows by tenant", () => `
-<p>Set a model role’s logical partition predicate, for example <code>tenant_id = 1</code>. Map <code>tenant_id</code> into all relevant node and edge business keys and both relationship endpoints, with compatible types. GraphLake enforces the scope on supported client queries, exploration, and exports.</p>
+<p>Under a model’s Query permission, expand <strong>Restrict tenant scope</strong>. Set the tenant column to <code>tenant_id</code> and its JSON value to <code>1</code>, for example, then save the role. Map that column into all relevant node and edge business keys and both relationship endpoints, with compatible types. GraphLake enforces the scope on supported client queries, exploration, and exports.</p>
 <p>Conflicting tenant values on the same model are rejected. To segregate sensitive columns, use database views or a separate model projection. Shared CSR generations are available for unscoped queries.</p>`],
       ["rotate", "Rotate credentials and verify", ({ ref }) => `
 <p>Rotate an application’s token in its service-account settings. Put the new token in the client’s secret store, reconnect, and verify the old token no longer grants access. Role changes can invalidate existing sessions, connections, and download tickets.</p>

@@ -97,6 +97,10 @@ export const mcpConfig = JSON.stringify({
       url: "https://graphlake.example/mcp/query",
       headers: { Authorization: "Bearer <PERSONAL_AI_TOKEN>" },
     },
+    "graphlake-modeling": {
+      url: "https://graphlake.example/mcp/modeling",
+      headers: { Authorization: "Bearer <PERSONAL_AI_TOKEN>" },
+    },
   },
 }, null, 2);
 

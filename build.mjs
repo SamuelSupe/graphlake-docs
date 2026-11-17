@@ -7,7 +7,7 @@ import zh from "./zh.mjs";
 const locales = { en, "zh-CN": zh };
 const groups = [
   ["start", ["", "docs", "install", "first-model", "quickstart", "concepts"]],
-  ["guides", ["sources", "model", "query", "query-recipes", "algorithms", "local-tables", "use-cases"]],
+  ["guides", ["sources", "datasources", "model", "query", "query-recipes", "algorithms", "local-tables", "use-cases"]],
   ["integration", ["clients", "access", "mcp"]],
   ["operations", ["deploy", "cluster", "monitoring", "recovery", "troubleshoot"]],
 ];
@@ -22,6 +22,10 @@ const screenshotHeights = {
   "model-editor": 921,
   "query-parameters": 1130,
   "query-neighbors": 1189,
+  "access-model-role": 861,
+  "mcp-settings": 861,
+  "mcp-client-setup": 1077,
+  "mcp-verify": 1713,
 };
 const connectorAssets = [
   ["postgres", "PostgreSQL"],
@@ -60,7 +64,7 @@ function renderPage(locale, slug) {
   const code = (language, value) => `<div class="code-block"><div class="code-head"><span>${language}</span><button type="button" class="copy" data-copied="${ui.copied}" data-error="${ui.copyError}" hidden>${ui.copy}</button><span class="sr-only" role="status"></span></div><pre tabindex="0"><code>${escape(value)}</code></pre></div>`;
   const image = (name, alt, eager = false) => `<a class="screenshot" href="${assets}${name}.jpg"><img src="${assets}${name}.jpg" width="1512" height="${screenshotHeights[name]}" alt="${escape(alt)}"${eager ? ' fetchpriority="high"' : ' loading="lazy"'}></a>`;
   const asset = (path, label) => `<a href="${assets}${path}" download>${label}</a>`;
-  const context = { link, ref, code, image, asset, releasePage };
+  const context = { link, ref, code, image, asset, assets, releasePage };
 
   function navGroups() {
     return groups.map(([group, entries]) => `<div class="nav-group"><p>${ui[group]}</p><ul>${entries.map((page) => `<li><a href="${href(page)}"${page === slug ? ' aria-current="page"' : ""}>${articles[page]?.title ?? ui.overview}</a></li>`).join("")}</ul></div>`).join("");
@@ -140,8 +144,8 @@ function renderPage(locale, slug) {
       </section>
       <div class="connector-band">
         <div class="shell">
-          <ul class="connectors" aria-label="${articles.sources.title}">
-            ${connectorAssets.map(([asset, name]) => `<li><a href="${href("sources")}"><img src="${assets}${asset}.svg" alt="" width="34" height="34">${name}</a></li>`).join("")}
+          <ul class="connectors" aria-label="${articles.datasources.title}">
+            ${connectorAssets.map(([asset, name]) => `<li><a href="${href("datasources")}#source-${asset}"><img src="${assets}${asset}.svg" alt="" width="34" height="34">${name}</a></li>`).join("")}
           </ul>
         </div>
       </div>

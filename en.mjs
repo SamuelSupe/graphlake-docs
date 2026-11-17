@@ -4,6 +4,7 @@ import {
 } from "./examples.mjs";
 import operations from "./operations-en.mjs";
 import handbook from "./handbook-en.mjs";
+import { datasourcePage } from "./datasources.mjs";
 import { directTransfers, postgresSource, syncDemoSetup, syncDemoUpdate, workbenchPath } from "./handbook-examples.mjs";
 
 const workbenchAlt = "GraphLake workbench showing three accounts linked by transfers from the Parquet demo";
@@ -83,17 +84,13 @@ ${code("Cypher", graphQuery)}
 <p>Ready for your own data? ${link("sources", "Connect a source")} and ${link("model", "publish a graph model")}.</p>`],
       ],
     },
+    datasources: datasourcePage(false),
     sources: {
       title: "Connect data",
       description: "Give GraphLake read access to the tables, warehouse views, or files that contain your entities and relationships.",
       sections: [
-        ["choose", "Choose a connector", ({ ref }) => `
-<dl class="plain-list">
-  <dt>Databases</dt><dd>PostgreSQL, MySQL, MariaDB, SQLite, SQL Server, Oracle, MongoDB, DuckDB, TiDB, and OceanBase in MySQL mode.</dd>
-  <dt>Warehouses and lakehouse</dt><dd>Snowflake, BigQuery, ClickHouse, Trino, Spanner, SAP HANA, Databricks SQL, Apache Doris, StarRocks, Iceberg, and Delta Lake.</dd>
-  <dt>Files and object storage</dt><dd>CSV, JSON Lines, and Parquet. Configure S3, MinIO, OSS, TOS, COS, Azure Blob Storage, or GCS as a connection to browse and map files.</dd>
-</dl>
-<p>Oracle direct access requires Oracle Instant Client on the server. Trino can also expose SQL Server, Oracle, Hive, Hudi, MongoDB, Elasticsearch, and Redshift through configured catalogs. See the ${ref("docs/reference.zh-CN.md#图映射与连接器", "connector reference")} for configuration and supported types.</p>`],
+        ["choose", "Choose a connector", ({ link }) => `
+<p>Use the ${link("datasources", "data source catalog")} to find the connection type, required settings, and dependencies for your database, warehouse, lakehouse table, or file storage.</p>`],
         ["configure", "Add a source in the workbench", ({ image }) => `
 <p>Sign in as an administrator. To follow the screenshots, prepare the <a href="#sqlite-demo">SQLite sample</a> before adding the connection.</p>
 <ol>
@@ -258,18 +255,44 @@ ${code("YAML", "managed_local_tables: true\nlocal_snapshot_retention_seconds: 86
       title: "Connect an AI client",
       description: "Give an AI client access to published queries or authorized modeling tasks through Model Context Protocol (MCP).",
       sections: [
-        ["enable", "Enable the service you need", () => `
-<p>In <strong>Runtime Settings → MCP services</strong> (运行配置 → MCP 服务), an administrator can enable query and modeling independently. Both default to disabled. Enable publication separately if it is required.</p>
+        ["enable", "Enable query and modeling services", ({ image, link }) => `
+<ol>
+  <li>As an administrator, grant the account <strong>Allow MCP access</strong> and the required model actions in ${link("access", "Access Control")}.</li>
+  <li>Open <strong>Runtime Settings → MCP Services</strong>. Turn on <strong>Enable query service</strong>, <strong>Enable modeling service</strong>, or both. Both are off by default. Set the row limit and timeout for query requests as needed.</li>
+  <li>Select <strong>Save MCP settings</strong>. Changes take effect immediately. To let an agent publish, separately enable <strong>Allow model publishing</strong> and give its account <strong>Publish</strong> on the target model.</li>
+</ol>
 <dl class="plain-list">
   <dt><code>/mcp/query</code></dt><dd>Discover visible models and published schema, then run bounded read-only queries.</dd>
-  <dt><code>/mcp/modeling</code></dt><dd>Read, validate, create, and save authorized drafts. Publication requires the publisher role and server opt-in.</dd>
-</dl>`],
+  <dt><code>/mcp/modeling</code></dt><dd>Read, validate, create, and save authorized drafts. Creating a draft requires Modeling rights on both an approved template and the preauthorized new model ID.</dd>
+</dl>
+<figure>${image("mcp-settings", "English MCP Services settings showing query and modeling enabled with model publishing unchecked")}<figcaption>Use the independent switches to enable the services needed by your client.</figcaption></figure>`],
+        ["token", "Generate a personal token", ({ image }) => `
+<ol>
+  <li>Sign in as the member the AI client will represent and open <strong>AI</strong>. Expand <strong>My permissions</strong> to check model access.</li>
+  <li>In <strong>Personal token</strong>, select <strong>Generate personal token</strong> and then <strong>Copy token</strong>. Save it in the client’s credential store before leaving or refreshing the page. The token is revealed only during issuance.</li>
+</ol>
+<p>Each user has one active token, valid for 90 days. Use <strong>Manage token</strong> to replace or revoke it. Generating a replacement invalidates the old token. For a member with MCP access and console sign-in disabled, an administrator can select <strong>Issue MCP token</strong> and save the member in <strong>Access Control → Members</strong>.</p>
+<figure>${image("mcp-client-setup", "English AI workspace showing Generate personal token, the Query and Modeling service choices, and Streamable HTTP connection settings")}<figcaption>Generate a token as the member whose permissions the client should inherit.</figcaption></figure>`],
         ["connect", "Register GraphLake in your client", ({ code }) => `
-<p>Open <strong>AI</strong> in the console. Generate a personal token and store it in the client's credential configuration. Add a Streamable HTTP MCP entry for each service you need. Replace the example origin with your GraphLake HTTPS origin and provide the token in the <code>Authorization</code> header.</p>
+<ol>
+  <li>In <strong>AI → Add to agent</strong>, select <strong>Query MCP</strong> or <strong>Modeling MCP</strong> if both are available. Copy the <strong>MCP URL</strong>.</li>
+  <li>In your client’s MCP settings, create a <strong>Streamable HTTP</strong> entry using that URL. Select <strong>Bearer Token</strong> or configure the <code>Authorization: Bearer &lt;token&gt;</code> header. Add a separate entry if the client needs both endpoints.</li>
+  <li>For a JSON-based client, expand <strong>Use JSON configuration</strong> or adapt the example below. Use the public HTTPS origin configured on GraphLake for remote clients and replace the token placeholders in the client’s credential configuration.</li>
+</ol>
 ${code("JSON", mcpConfig)}
-<p>The token uses the owner's current model permissions and tenant scope. An administrator can issue a token for a member with MCP access. Test the connection in the AI workspace to check the authenticated identity and tool visibility.</p>`],
-        ["use", "Run your first request", ({ ref }) => `
-<p>Ask the client to list permitted models, inspect the published schema, and run a small query. For model edits, read the current draft and revision, validate changes, and review the saved draft before publishing. See the ${ref("docs/mcp.md", "MCP reference")} for role checks, token rotation, and query limits.</p>`],
+<p>The same personal token can authenticate both endpoints. Tool access follows the owner’s current model actions and tenant scope on every request.</p>`],
+        ["verify", "Verify the MCP connection", ({ image }) => `
+<ol>
+  <li>In the GraphLake <strong>AI</strong> workspace, select the service, open <strong>Verify connection</strong>, and click <strong>Test MCP connection</strong>. Paste your saved token if the page asks for it.</li>
+  <li>Check the authenticated username and open <strong>View models and tools</strong>. Compare model IDs and available tools with the role you configured. Repeat for the other endpoint if you added both.</li>
+  <li>In your client, reconnect or refresh the server’s tool list. Ask it to call <code>list_models</code> on that server. A successful result shows the models that identity can access. This independently verifies the client's URL, transport, credentials, and permissions.</li>
+</ol>
+<p>If the client reports <code>401</code>, check the Bearer header and whether the token was expired, replaced, or revoked. For <code>403</code>, check <strong>Allow MCP access</strong> and the role on the model. For <code>404</code>, verify the URL and that its service is enabled. In the client, confirm the transport is Streamable HTTP.</p>
+<figure>${image("mcp-verify", "English AI connection test showing demo-analyst, one visible model, and three query tools")}<figcaption>Verify the user, visible models, and tools before using the client to query data or edit drafts.</figcaption></figure>`],
+        ["use", "Run your first request", ({ code, ref }) => `
+<p>On the query endpoint, ask the client to call <code>list_models</code>, then <code>get_schema</code> and <code>query</code> for a published model. With the transfer demo the following read-only query returns <code>3</code>.</p>
+${code("Cypher", "MATCH (n:Account) RETURN count(n) AS accounts")}
+<p>On the modeling endpoint, use <code>get_model</code> to confirm draft access. For a requested edit, read its revision, validate the changes, and review the saved draft before publication. The ${ref("docs/mcp.md", "MCP reference")} describes tool arguments, token rotation, and query limits.</p>`],
       ],
     },
     "use-cases": {

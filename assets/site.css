@@ -371,9 +371,9 @@ button { font: inherit; cursor: pointer; }
   color: var(--muted);
 }
 .doc-section p { margin-block: 0.7rem; text-wrap: pretty; }
-.doc-section :is(p:not(.note), ol, ul:not(.downloads), dl) { max-inline-size: 72ch; }
-:lang(zh-CN) .doc-section :is(p:not(.note), ol, ul:not(.downloads), dl) { max-inline-size: 43em; }
-.doc-section :is(ol, ul:not(.downloads)) { padding-inline-start: 1.45rem; }
+.doc-section :is(p:not(.note), ol, ul:not(.downloads, .datasource-grid), dl) { max-inline-size: 72ch; }
+:lang(zh-CN) .doc-section :is(p:not(.note), ol, ul:not(.downloads, .datasource-grid), dl) { max-inline-size: 43em; }
+.doc-section :is(ol, ul:not(.downloads, .datasource-grid)) { padding-inline-start: 1.45rem; }
 .doc-section .task-list li + li { margin-block-start: 0.7rem; }
 .example-details {
   margin-block: 0.9rem;
@@ -387,6 +387,33 @@ button { font: inherit; cursor: pointer; }
 .doc-section strong, .plain-list dt { color: var(--ink); }
 .doc-section figure { margin-block: 1rem; }
 .doc-section figcaption { margin-block-start: 0.55rem; color: var(--muted); font-size: 0.88rem; }
+
+.datasource-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  gap: 0.85rem;
+  padding: 0;
+  list-style: none;
+}
+.doc-section .datasource-card {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  align-content: start;
+  gap: 0.45rem;
+  margin: 0;
+  min-inline-size: 0;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+  background: var(--surface);
+}
+.datasource-card img { grid-row: 1; grid-column: 1; align-self: center; block-size: 30px; object-fit: contain; }
+#source-storage-minio img { padding: 3px; border-radius: 0.28rem; background: var(--navy); }
+.doc-section .datasource-card:target { border-color: var(--link); }
+.datasource-card h3 { grid-row: 1; grid-column: 1; align-self: center; color: var(--ink); font-size: 1.05rem; line-height: 1.35; }
+.datasource-card img + h3 { padding-inline-start: 2.5rem; }
+.doc-section .datasource-card p { grid-row: 2; margin: 0; font-size: 0.92rem; line-height: 1.55; }
+.datasource-card code { grid-row: 3; justify-self: start; overflow-wrap: anywhere; }
 
 .doc-search {
   display: block;

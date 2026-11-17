@@ -4,7 +4,7 @@ import {
 } from "./examples.mjs";
 import operations from "./operations-en.mjs";
 import handbook from "./handbook-en.mjs";
-import { directTransfers, postgresSource } from "./handbook-examples.mjs";
+import { directTransfers, postgresSource, workbenchPath } from "./handbook-examples.mjs";
 
 const workbenchAlt = "GraphLake workbench showing three accounts linked by transfers from the Parquet demo";
 
@@ -165,15 +165,37 @@ ${code("YAML", mapping)}
     },
     query: {
       title: "Query and explore",
-      description: "Run read-only graph queries, inspect paths in the browser, and export the results when you need the full dataset.",
+      description: "Run a parameterized query, switch between result views, and follow relationships one hop at a time in the console.",
       sections: [
         ["run", "Run against a published model", ({ code, link }) => `
-<p>Open <strong>Query</strong> (查询), select a published model, and choose Cypher, SQL, or Gremlin. In the ${link("quickstart", "Parquet demo")}, this Cypher query summarizes two-hop transfers to each destination.</p>
-${code("Cypher", cypher)}
-<p>Use the query options to set a timeout or provide Cypher parameters. The result identifies the model revision and source versions. Check these when reproducing a result. See ${link("query-recipes", "query recipes")} for runnable examples in all three languages.</p>`],
-        ["graph", "Investigate the graph", ({ code }) => `
-<p>Return a path or graph objects to populate the graph view. Select a node or edge to inspect its properties. Expand a node to see its neighbors and load additional batches as needed. Use the table view for scalar results.</p>
-${code("Cypher", graphQuery)}`],
+<p>Open <strong>Query</strong> and select a published model. For this walkthrough use <code>Transfer demo</code> from ${link("model", "the canvas modeling tutorial")}. The published <code>graph</code> model from ${link("first-model", "Build your first graph")} works with the same query.</p>
+<p>Choose <strong>Cypher</strong> next to <strong>Run query</strong> and paste this into <strong>Query statement</strong>. It returns the path <code>p</code> for the canvas, plus the sender, recipient, and amount for the table. See ${link("query-recipes", "query recipes")} for SQL and Gremlin examples.</p>
+${code("Cypher", workbenchPath)}`],
+        ["parameters", "Set Cypher parameters", ({ code, image }) => `
+<ol>
+  <li>Below the editor, open <strong>Query options → Cypher parameters (JSON)</strong>. Paste the JSON object below. Use the key <code>account_id</code> without the dollar sign. Enter <code>1</code> as a number because this sample uses an <code>Int64</code> account ID.</li>
+  <li>Select <strong>Run query</strong>. Open <strong>Table</strong> to check the single row. Alice sent Bob <code>12.25</code>.</li>
+  <li>To reuse the statement, change the value to <code>2</code> and run it again. The row now shows Bob sending Carol <code>25.50</code>. Set the value back to <code>1</code> and run again before the neighbor walkthrough.</li>
+</ol>
+${code("JSON", '{"account_id":1}')}
+<p>If the query reports a parameter error, check that you entered a JSON object with double-quoted keys and that each key matches the name after <code>$</code> in the statement. The parameter field appears when Cypher is selected. Leave <strong>Timeout (ms)</strong> empty to use the server default.</p>
+<figure>${image("query-parameters", "English Query workspace with account_id set to 1 and the Table tab showing Alice, Bob, and 12.25")}<figcaption>Enter the statement in the editor and its JSON parameters in <strong>Query options</strong>.</figcaption></figure>`],
+        ["views", "Switch result views", () => `
+<p>Use the tabs above the results to inspect the query output or the published schema.</p>
+<dl class="plain-list">
+  <dt>Graph</dt><dd>Explore returned nodes, edges, and paths. Select an element to inspect its business key and properties. For a query that returns only scalar values, use <strong>Table</strong>. To populate the graph, return a node, edge, or path such as <code>RETURN p</code>.</dd>
+  <dt>Table</dt><dd>Read the returned rows and column types. In this example, <code>p</code> is the path and the other columns show the transfer details.</dd>
+  <dt>Graph schema</dt><dd>Inspect the published model’s node labels, edge types, business keys, and mapped properties.</dd>
+  <dt>Raw response</dt><dd>Inspect the latest query’s response JSON. Open <strong>Execution details</strong> below the results to check the model revision and source versions.</dd>
+</dl>`],
+        ["graph", "Expand one-hop neighbors", ({ image }) => `
+<ol>
+  <li>With the result for <code>account_id</code> set to <code>1</code>, switch to <strong>Graph</strong>. Select the <code>Account</code> node with business key <code>2</code>. The properties panel identifies it as Bob.</li>
+  <li>In the node’s properties panel, open <strong>Expansion filters</strong>. Set <strong>Direction</strong> to <strong>Outgoing</strong> and <strong>Edge types</strong> to <code>Transfer</code>. Choose <strong>Incoming</strong> to follow edges pointing to the selected node, or <strong>Both directions</strong> to follow either direction. After choosing an edge type with mapped properties, you can add a property condition.</li>
+  <li>Select <strong>Expand neighbors</strong>. Carol and the <code>Transfer</code> edge from Bob appear on the canvas. It now shows three nodes and two edges. Use <strong>Fit graph to view</strong> if a new node is outside the current view.</li>
+</ol>
+<p>Each expansion adds one hop around the selected node. If more matches are available, select <strong>Load next page</strong> to add another batch for the same node. To follow another hop, select one of the newly added nodes and expand it. <strong>Table</strong> and <strong>Raw response</strong> read from the query execution. If the model revision changes, rerun the query before continuing.</p>
+<figure>${image("query-neighbors", "English Graph view showing Alice to Bob to Carol, with Bob selected and the Outgoing Transfer expansion controls visible")}<figcaption>Bob’s outgoing transfer adds Carol to the graph. The row count above the tabs refers to the query execution.</figcaption></figure>`],
         ["export", "Work with larger results", ({ ref }) => `
 <p>The workbench shows a bounded preview. Use cancellation for a query you no longer need. For complete results, enable full-result capture and download Arrow IPC with query and export permissions. Use filters, hop bounds, and resource limits to keep exploratory queries predictable.</p>
 <p>Applications can use HTTP, Bolt, Gremlin WebSocket, the CLI, or embedded Rust. See the ${ref("docs/reference.zh-CN.md#查询语义与资源控制", "query and protocol reference")} and the ${ref("docs/reference.zh-CN.md#整图算法", "graph algorithms reference")} for shortest paths, PageRank, and community detection.</p>`],

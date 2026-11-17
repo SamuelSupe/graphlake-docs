@@ -12,7 +12,13 @@ const groups = [
   ["operations", ["deploy", "cluster", "monitoring", "recovery", "troubleshoot"]],
 ];
 const pages = groups.flatMap(([, slugs]) => slugs);
-const screenshotHeights = { workbench: 948, "local-tables": 805, "model-editor": 921 };
+const screenshotHeights = {
+  workbench: 948,
+  "local-tables": 805,
+  "model-editor": 921,
+  "query-parameters": 1130,
+  "query-neighbors": 1189,
+};
 const connectorAssets = [
   ["postgres", "PostgreSQL"],
   ["parquet", "Parquet"],

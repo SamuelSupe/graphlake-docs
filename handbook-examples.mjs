@@ -25,6 +25,10 @@ WHERE a.id = $account_id
 RETURN a.name AS sender, b.name AS recipient, t.amount AS amount
 ORDER BY t.id`;
 
+export const workbenchPath = `MATCH p = (a:Account)-[t:Transfer]->(b:Account)
+WHERE a.id = $account_id
+RETURN p, a.name AS sender, b.name AS recipient, t.amount AS amount`;
+
 export const runSample = `/opt/graphlake/current/bin/graphlake --catalog graph.yaml query \\
   --parameters '{"account_id":1}' \\
   '${directTransfers}'`;

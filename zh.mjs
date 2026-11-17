@@ -4,7 +4,7 @@ import {
 } from "./examples.mjs";
 import operations from "./operations-zh.mjs";
 import handbook from "./handbook-zh.mjs";
-import { directTransfers, postgresSource } from "./handbook-examples.mjs";
+import { directTransfers, postgresSource, workbenchPath } from "./handbook-examples.mjs";
 
 const workbenchAlt = "GraphLake 查询工作台，展示 Parquet 示例中的三个账户及其转账关系";
 
@@ -165,15 +165,37 @@ ${code("YAML", mapping)}
     },
     query: {
       title: "查询与探索",
-      description: "运行只读图查询，在浏览器中检查路径，需要完整结果时导出。",
+      description: "在控制台运行带参数的查询，切换结果视图，并沿关系逐跳探索。",
       sections: [
         ["run", "选择已发布的模型", ({ code, link }) => `
-<p>打开<strong>查询</strong>（Query），选择已发布模型和 Cypher、SQL 或 Gremlin。在${link("quickstart", "Parquet 示例")}中，下面的 Cypher 查询按目标账户汇总两跳转账。</p>
-${code("Cypher", cypher)}
-<p>查询选项支持超时和 Cypher 参数。结果中包含模型版本和来源版本，复现结果时可以据此核对。三种语言的可运行范例见${link("query-recipes", "查询示例")}。</p>`],
-        ["graph", "查看路径与邻居", ({ code }) => `
-<p>返回路径或图对象后，在图视图选择节点或边查看属性。展开节点可查看邻居，并按需加载更多批次。标量结果可在表格视图查看。</p>
-${code("Cypher", graphQuery)}`],
+<p>打开<strong>查询</strong>（Query），选择已发布的模型。本教程使用${link("model", "画布建模教程")}中的 <code>Transfer demo</code>。也可以在${link("first-model", "第一个图模型教程")}发布的 <code>graph</code> 模型中运行同一条查询。</p>
+<p>在<strong>运行查询</strong>旁选择 <strong>Cypher</strong>，将下面的语句粘贴到<strong>查询语句</strong>编辑器。路径 <code>p</code> 用于绘图，转出方、收款方和金额可在表格中核对。SQL 和 Gremlin 的用法见${link("query-recipes", "查询示例")}。</p>
+${code("Cypher", workbenchPath)}`],
+        ["parameters", "设置 Cypher 查询参数", ({ code, image }) => `
+<ol>
+  <li>在编辑器下方打开<strong>查询选项 → Cypher 参数（JSON）</strong>，粘贴下方的 JSON 对象。键名写 <code>account_id</code>，省略 <code>$</code>。样例的账户 ID 是 <code>Int64</code>，因此值 <code>1</code> 用数字填写。</li>
+  <li>点击<strong>运行查询</strong>，切换到<strong>表格</strong>核对一行结果。Alice 向 Bob 转账 <code>12.25</code>。</li>
+  <li>把参数值改为 <code>2</code> 并再次运行，结果变为 Bob 向 Carol 转账 <code>25.50</code>。练习展开邻居前，把参数改回 <code>1</code> 并再运行一次。</li>
+</ol>
+${code("JSON", '{"account_id":1}')}
+<p>遇到参数错误时，检查输入是否为 JSON 对象，键名是否用双引号包裹并与语句中 <code>$</code> 后的名称一致。参数框在选择 Cypher 后显示。<strong>超时（毫秒）</strong>留空时使用服务端默认值。</p>
+<figure>${image("query-parameters", "英文查询工作台将 account_id 设为 1，表格显示 Alice、Bob 和金额 12.25")}<figcaption>在编辑器中输入查询语句，在 <strong>Query options</strong> 中填写 JSON 参数。</figcaption></figure>`],
+        ["views", "切换查询结果视图", () => `
+<p>通过结果区域上方的标签页查看查询结果或已发布的图结构。</p>
+<dl class="plain-list">
+  <dt>图（Graph）</dt><dd>查看返回的节点、边和路径。点选图元素可以检查业务键和属性。只返回标量值时用<strong>表格</strong>查看。需要画图时，让语句返回节点、边或路径，例如 <code>RETURN p</code>。</dd>
+  <dt>表格（Table）</dt><dd>查看返回的行和列类型。本例中 <code>p</code> 是路径，其余列是转账明细。</dd>
+  <dt>图结构（Graph schema）</dt><dd>查看已发布模型的节点标签、边类型、业务键和已映射属性。</dd>
+  <dt>原始响应（Raw response）</dt><dd>查看最近一次查询返回的 JSON。展开结果下方的<strong>执行详情</strong>，可核对模型版本和数据源版本。</dd>
+</dl>`],
+        ["graph", "展开一跳邻居", ({ image }) => `
+<ol>
+  <li>将 <code>account_id</code> 设为 <code>1</code> 并运行查询，切换到<strong>图</strong>。选择业务键为 <code>2</code> 的 <code>Account</code> 节点，属性面板会显示名称 Bob。</li>
+  <li>在节点属性面板点开<strong>展开筛选</strong>（Expansion filters），<strong>方向</strong>选<strong>出边</strong>（Outgoing），<strong>边类型</strong>选 <code>Transfer</code>。要沿指向当前节点的边探索，选择<strong>入边</strong>（Incoming）。要查两个方向，选择<strong>双向</strong>（Both directions）。选定有已映射属性的边类型后，还可以添加属性条件。</li>
+  <li>点击<strong>展开邻居</strong>（Expand neighbors），画布会加入 Carol 以及 Bob 指向 Carol 的转账边，此时共有 3 个节点、2 条边。如果新节点在可视区域外，点击<strong>适配结果图</strong>（Fit graph to view）。</li>
+</ol>
+<p>每次展开查找选中节点的一跳邻居。若还有匹配项，点击<strong>加载下一页</strong>可为同一节点加入下一批。要向外再走一跳，请选中新加入的节点再展开。<strong>表格</strong>和<strong>原始响应</strong>读取的是查询执行结果。模型版本切换后，重新运行查询再继续探索。</p>
+<figure>${image("query-neighbors", "英文图探索画布显示 Alice 到 Bob 到 Carol，选中 Bob 后可看到出边和 Transfer 展开筛选")}<figcaption>展开 Bob 的转账出边后，Carol 加入画布。标签页上方的行数统计对应查询执行结果。</figcaption></figure>`],
         ["export", "处理大结果集", ({ ref }) => `
 <p>工作台显示有界预览。无需继续的查询可以取消。需要完整结果时，使用具备查询和导出权限的账号开启完整结果捕获，下载 Arrow IPC。探索大图时使用过滤条件、跳数限制与资源限制。</p>
 <p>应用可使用 HTTP、Bolt、Gremlin WebSocket、CLI 或嵌入式 Rust。更多信息见${ref("docs/reference.zh-CN.md#查询语义与资源控制", "查询语义与协议")}和${ref("docs/reference.zh-CN.md#整图算法", "整图算法")}，包括最短路径、PageRank、社区发现等。</p>`],

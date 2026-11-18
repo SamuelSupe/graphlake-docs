@@ -13,21 +13,15 @@ python3 -m http.server 4173 --bind 127.0.0.1 --directory dist
 
 Open [English](http://127.0.0.1:4173/) or [中文](http://127.0.0.1:4173/zh/). Deploy the contents of `dist/` on any static host with directory index support. The build requires no package install.
 
-## Cloudflare Pages
+## Publish to Cloudflare Pages from Codex
 
-The [deployment workflow](.github/workflows/deploy.yml) builds each push to `main` with Node.js 24, then uploads `dist/` to the existing `graphlake-docs` Pages project. Production deployments run serially.
+Push the documentation changes to `main`. To release them, open this repository in Codex, select the **Cloudflare** plugin and give it this request.
 
-Configure these repository settings before running the workflow:
+> Publish the latest GitHub `main` to the production `graphlake-docs` Pages project using `./scripts/publish-pages.sh`. Verify the English and Chinese home pages and report the commit and deployment URL.
 
-- Actions variable `CLOUDFLARE_ACCOUNT_ID` for the account that owns the Pages project.
-- Actions secret `CLOUDFLARE_API_TOKEN` with **Account → Cloudflare Pages → Edit** on that account.
+The [release script](scripts/publish-pages.sh) builds the fetched commit in a fresh directory and uses the plugin’s Wrangler Pages Direct Upload workflow. The production deployment records the full Git commit. Publishing is an explicit step after a push.
 
-After setting both values, rerun the failed deployment job or push another commit to `main`. To deploy the same build manually from a clean checkout with a local Wrangler login:
-
-```sh
-node build.mjs
-npx --yes wrangler@4.163.0 pages deploy dist --project-name graphlake-docs --branch main --commit-hash "$(git rev-parse HEAD)"
-```
+The release machine needs Git, npm and a Wrangler login with deployment access to the existing project. If signing in for the first time, run `npx --yes wrangler@4.163.0 login`. Builds use Node.js 24 on Linux or a Node.js 24 container in OrbStack on macOS. [Cloudflare Direct Upload documentation](https://developers.cloudflare.com/pages/get-started/direct-upload/)
 
 ## Update a guide
 

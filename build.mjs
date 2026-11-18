@@ -50,6 +50,11 @@ const connectorAssets = [
   ["duckdb", "DuckDB"],
 ];
 const icons = {
+  search: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/>',
+  globe: '<circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/>',
+  menu: '<path d="M3 6h18M3 12h18M3 18h18"/>',
+  book: '<path d="M3 5h6c2 0 3 1 3 2 0-1 1-2 3-2h6v14h-6c-2 0-3 1-3 2 0-1-1-2-3-2H3zM12 7v13"/>',
+  external: '<path d="M6 18 18 6M7 6h11v11"/>',
   sources: '<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 4 16 4 16 0V5M4 12c0 4 16 4 16 0"/>',
   model: '<path d="m4 19 8-14 8 14H4"/><circle cx="4" cy="19" r="3"/><circle cx="12" cy="5" r="3"/><circle cx="20" cy="19" r="3"/>',
   query: '<path d="m8 6-6 6 6 6m8-12 6 6-6 6m-2-15-4 18"/>',
@@ -119,13 +124,13 @@ function renderPage(locale, slug) {
     const next = articleNav[index + 1];
     return `<div class="doc-layout">
       <div class="doc-rail">
-        <button class="guide-toggle" type="button" popovertarget="guide-menu" aria-controls="guide-menu" hidden>${ui.contents}</button>
+        <button class="guide-toggle" type="button" popovertarget="guide-menu" aria-controls="guide-menu" hidden>${svg("book")}${ui.contents}</button>
         <nav class="guide-menu" id="guide-menu" aria-label="${ui.contents}">${navGroups()}</nav>
       </div>
       <main class="doc" id="main" tabindex="-1">
         <header class="doc-heading">
           ${slug === "docs" ? "" : `<nav class="breadcrumb" aria-label="${ui.breadcrumb}">
-            <ol><li>${link("docs", ui.docs)}</li><li><a href="./" aria-current="page">${article.title}</a></li></ol>
+            <ol><li>${link("docs", ui.docs)}</li><li aria-current="page">${article.title}</li></ol>
           </nav>`}
           <h1>${article.title}</h1>
           <p class="lead">${article.description}</p>
@@ -134,8 +139,8 @@ function renderPage(locale, slug) {
         <details class="inline-outline"><summary>${ui.onPage}</summary>${sectionLinks}</details>
         ${sections.map(([id, heading, body]) => `<section class="doc-section" aria-labelledby="${id}"><h2 id="${id}">${heading}</h2>${body(context)}</section>`).join("")}
         <nav class="pagination" aria-label="${ui.contents}">
-          ${previous ? `<div><small>${ui.previous}</small>${link(previous)}</div>` : ""}
-          ${next ? `<div class="next"><small>${ui.next}</small>${link(next)}</div>` : ""}
+          ${previous ? `<a class="previous" href="${href(previous)}"><small>${ui.previous}</small><span>${svg("arrow")}${articles[previous].title}</span></a>` : ""}
+          ${next ? `<a class="next" href="${href(next)}"><small>${ui.next}</small><span>${articles[next].title}${svg("arrow")}</span></a>` : ""}
         </nav>
       </main>
       <aside class="outline"><nav aria-label="${ui.onPage}"><strong>${ui.onPage}</strong>${sectionLinks}</nav></aside>
@@ -145,6 +150,10 @@ function renderPage(locale, slug) {
   function landingPage() {
     return `<main class="landing" id="main" tabindex="-1">
       <section class="hero-band" aria-labelledby="overview">
+        <picture class="hero-art">
+          <source media="(max-width: 680px)" srcset="${assets}graph-layers-small.webp">
+          <img src="${assets}graph-layers.webp" width="2172" height="724" alt="" fetchpriority="high">
+        </picture>
         <div class="shell hero">
           <div class="hero-copy">
             <h1 id="overview">${home.title}</h1>
@@ -154,11 +163,11 @@ function renderPage(locale, slug) {
               <a class="button secondary" href="${href("install")}">${articles.install.title}</a>
             </div>
           </div>
-          <figure class="hero-visual">${image("workbench", home.workbenchAlt, true)}</figure>
         </div>
       </section>
       <div class="connector-band">
-        <div class="shell">
+        <div class="shell connector-row">
+          <a class="connector-index" href="${href("datasources")}">${home.connectors}${svg("arrow")}</a>
           <ul class="connectors" aria-label="${articles.datasources.title}">
             ${connectorAssets.map(([asset, name]) => `<li><a href="${href("datasources")}#source-${asset}"><img src="${assets}${asset}.svg" alt="" width="34" height="34">${name}</a></li>`).join("")}
           </ul>
@@ -167,17 +176,19 @@ function renderPage(locale, slug) {
       <div class="shell">
         <section class="landing-section" aria-labelledby="workflow">
           <h2 id="workflow">${home.workflow}</h2>
-          <div class="step-grid">${home.steps.map(([page, title, body]) => `<div class="step"><h3>${link(page, `${svg(page)}${title}`)}</h3><p>${body}</p></div>`).join("")}</div>
+          <div class="step-grid">${home.steps.map(([page, title, body]) => `<a class="step" href="${href(page)}">
+            ${svg(page)}<div><h3>${title}</h3><p>${body}</p><span class="step-link">${articles[page].title}${svg("arrow")}</span></div></a>`).join("")}</div>
         </section>
         <section class="landing-section use-cases" aria-labelledby="cases">
-          <h2 id="cases">${articles["use-cases"].title}</h2>
+          <div class="case-intro"><h2 id="cases">${articles["use-cases"].title}</h2>
+            <figure>${image("workbench", home.workbenchAlt)}</figure></div>
           <ul class="case-list">${articles["use-cases"].sections.map(([id, title]) => `<li><a class="case" href="${href("use-cases")}#${id}"><div><h3>${title}</h3><p>${home.cases[id]}</p></div>${svg("arrow")}</a></li>`).join("")}</ul>
         </section>
       </div>
       <section class="pathways" aria-labelledby="guides">
         <div class="shell landing-section">
           <h2 id="guides">${home.more}</h2>
-          <ul>${["local-tables", "mcp", "cluster"].map((page) => `<li>${link(page)}</li>`).join("")}</ul>
+          <ul>${["local-tables", "mcp", "cluster"].map((page) => `<li>${link(page, articles[page].title + svg("arrow"))}</li>`).join("")}</ul>
         </div>
       </section>
     </main>`;
@@ -197,18 +208,24 @@ function renderPage(locale, slug) {
 <link rel="alternate" hreflang="zh-CN" href="${pageURL(current, "zh-CN", slug)}">
 <link rel="icon" href="${assets}graphlake-logo.png" type="image/png" sizes="512x512">
 <link rel="stylesheet" href="${assets}site.css">
+${article ? "" : `<link rel="stylesheet" href="${assets}home.css">`}
 <script src="${assets}site.js" defer></script>
 </head>
 <body>
 <a href="#main" class="skip">${ui.skip}</a>
 <header class="site-header">
   <div class="shell topbar">
-    <a class="brand" href="${href("")}"><img src="${assets}graphlake-logo.png" width="44" height="44" alt=""><span>GraphLake</span></a>
-    <nav aria-label="${ui.primary}">
-      <a href="${href("docs")}"${slug === "docs" ? ' aria-current="page"' : article && slug !== "use-cases" ? ' class="selected"' : ""}>${ui.docs}</a>
-      <a href="${href("use-cases")}"${slug === "use-cases" ? ' aria-current="page"' : ""}>${articles["use-cases"].title}</a>
-      <a data-language href="${otherPage}" lang="${other}" hreflang="${other}">${ui.language}</a>
-      <a class="github" href="${repository}">GitHub</a>
+    <div class="brand-group"><a class="brand" href="${href("")}"><img src="${assets}graphlake-logo.png" width="36" height="36" alt=""><span>GraphLake</span></a>
+      <a class="brand-docs" href="${href("docs")}">${ui.docs}</a></div>
+    <nav class="primary-nav" aria-label="${ui.primary}">
+      <button class="primary-toggle nav-icon" type="button" popovertarget="primary-links" aria-controls="primary-links" aria-label="${ui.primary}" hidden>${svg("menu")}</button>
+      <div class="primary-links" id="primary-links">
+        <a href="${href("docs")}"${slug === "docs" ? ' aria-current="page"' : article && slug !== "use-cases" ? ' class="selected"' : ""}>${ui.guides}</a>
+        <a href="${href("use-cases")}"${slug === "use-cases" ? ' aria-current="page"' : ""}>${articles["use-cases"].title}</a>
+      </div>
+      <a class="nav-search nav-icon" data-search-link href="${href("docs")}" aria-label="${ui.search}" title="${ui.search}">${svg("search")}</a>
+      <a class="language-link" data-language href="${otherPage}" lang="${other}" hreflang="${other}" aria-label="${ui.language}">${svg("globe")}<span class="language-full">${ui.language}</span><span class="language-short" aria-hidden="true">${other === "en" ? "EN" : "中文"}</span></a>
+      <a class="github" href="${repository}">GitHub${svg("external")}</a>
     </nav>
   </div>
 </header>

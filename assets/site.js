@@ -1,15 +1,48 @@
-const guideMenu = document.querySelector("#guide-menu");
-if (guideMenu && "showPopover" in HTMLElement.prototype) {
-  const narrow = matchMedia("(max-width: 760px)");
-  const toggle = document.querySelector(".guide-toggle");
-
-  function updateGuideMenu() {
-    guideMenu.toggleAttribute("popover", narrow.matches);
+function responsiveMenu(id, query) {
+  const menu = document.getElementById(id);
+  if (!menu || !("showPopover" in HTMLElement.prototype)) return;
+  const toggle = document.querySelector(`[popovertarget="${id}"]`);
+  const narrow = matchMedia(query);
+  function resize() {
+    if (menu.matches(":popover-open")) menu.hidePopover();
+    menu.toggleAttribute("popover", narrow.matches);
     toggle.hidden = !narrow.matches;
   }
+  narrow.addEventListener("change", resize);
+  resize();
+}
 
-  narrow.addEventListener("change", updateGuideMenu);
-  updateGuideMenu();
+responsiveMenu("primary-links", "(max-width: 680px)");
+responsiveMenu("guide-menu", "(max-width: 760px)");
+
+const searchLink = document.querySelector("[data-search-link]");
+searchLink.hash = "guide-query";
+
+const outlineLinks = Array.from(document.querySelectorAll(".outline a"));
+if (outlineLinks.length) {
+  const sections = outlineLinks.map(link => document.getElementById(link.hash.slice(1)));
+  const header = document.querySelector(".site-header");
+  let active;
+  let frame;
+  function markSection() {
+    frame = undefined;
+    if (!outlineLinks[0].getClientRects().length) return;
+    const top = header.getBoundingClientRect().bottom + 32;
+    const index = window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 1
+      ? sections.length - 1 : Math.max(0, sections.findLastIndex(section => section.getBoundingClientRect().top <= top));
+    const next = outlineLinks[index];
+    if (next === active) return;
+    active?.removeAttribute("aria-current");
+    next.setAttribute("aria-current", "location");
+    active = next;
+  }
+  function schedule() {
+    if (frame === undefined) frame = requestAnimationFrame(markSection);
+  }
+  window.addEventListener("scroll", schedule, { passive: true });
+  window.addEventListener("resize", schedule);
+  window.addEventListener("load", schedule);
+  schedule();
 }
 
 if (navigator.clipboard) {
@@ -56,6 +89,7 @@ if (docSearch) {
   const results = docSearch.querySelector(".search-results");
   const index = JSON.parse(document.querySelector("#guide-index").textContent);
   docSearch.hidden = false;
+  if (location.hash === "#guide-query") requestAnimationFrame(() => input.focus());
 
   function clearSearch() {
     status.textContent = "";

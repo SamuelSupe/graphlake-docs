@@ -20,15 +20,16 @@ export default {
     footer: "Resources", release: "Release notes",
   },
   home: {
-    title: "Graph analytics<br class=\"wide-break\"> on your<br class=\"wide-break\"> <span class=\"hero-accent\">existing data</span>",
+    title: "Graph analytics on <span class=\"hero-accent\">your existing data.</span>",
     description: "Model relationships across databases and lakehouse tables. Query them with Cypher, SQL, or Gremlin, then explore the results in your browser.",
-    cta: "Run your first query",
+    cta: "Build your first graph",
     workbenchAlt,
     workflow: "From tables to a graph",
+    connectors: "Data sources",
     steps: [
-      ["sources", "Connect data", "Read from existing databases, warehouses, or lakehouse files. Direct queries leave source records in place."],
-      ["model", "Model relationships", "Map table keys and columns to nodes, edges, and properties. Validate a draft before publishing it."],
-      ["query", "Query and explore", "Follow multi-hop paths, expand neighbors in the workbench, or export results for downstream analysis."],
+      ["sources", "Connect", "Read from existing databases, warehouses, or lakehouse files. Direct queries leave source records in place."],
+      ["model", "Model", "Map table keys and columns to nodes, edges, and properties. Validate a draft before publishing it."],
+      ["query", "Query", "Follow multi-hop paths, expand neighbors in the workbench, or export results for downstream analysis."],
     ],
     cases: {
       funds: "Trace transfers across accounts and inspect the routes that connect a sender to a recipient.",

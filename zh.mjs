@@ -20,15 +20,16 @@ export default {
     footer: "资源", release: "发行说明",
   },
   home: {
-    title: "在现有数据上<br class=\"wide-break\"><span class=\"hero-accent\">做图分析</span>",
+    title: "在现有数据上<span class=\"hero-accent\">做图分析</span>",
     description: "将数据库和湖仓表中的实体与关系建成图，用 Cypher、SQL 或 Gremlin 查询，并在浏览器中探索结果。",
-    cta: "运行第一条查询",
+    cta: "构建第一个图",
     workbenchAlt,
     workflow: "从数据表到图",
+    connectors: "数据源",
     steps: [
-      ["sources", "连接数据", "读取现有数据库、数仓或湖仓文件。直接查询时，数据仍由原系统保存。"],
-      ["model", "建立关系模型", "用表的主键和字段定义节点、边与属性，校验草稿后再发布。"],
-      ["query", "查询与探索", "查找多跳路径，在工作台逐步展开邻居，或导出结果供下游分析。"],
+      ["sources", "连接", "读取现有数据库、数仓或湖仓文件。直接查询时，数据仍由原系统保存。"],
+      ["model", "建模", "用表的主键和字段定义节点、边与属性，校验草稿后再发布。"],
+      ["query", "查询", "查找多跳路径，在工作台逐步展开邻居，或导出结果供下游分析。"],
     ],
     cases: {
       funds: "追踪账户间的转账，查看资金从发起方流向接收方的路径。",

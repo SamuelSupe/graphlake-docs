@@ -95,11 +95,12 @@ ${code("Cypher", graphQuery)}
         ["configure", "在工作台添加数据源", ({ image }) => `
 <p>使用管理员账号登录。要跟着截图操作，先<a href="#sqlite-demo">准备 SQLite 样例</a>，再添加连接。</p>
 <ol>
-  <li>在控制台打开<strong>数据源</strong>（Data Sources），选中要配置的模型。点击<strong>添加数据源</strong>，搜索连接器，再点其卡片上的<strong>配置</strong>。模型尚未保存时，从建模指引中的<strong>添加数据源</strong>进入。</li>
+  <li>在控制台打开<strong>数据源</strong>（Data Sources），选中要配置的模型。点击<strong>添加数据源</strong>，搜索连接器，再点其卡片上的<strong>配置</strong>。模型目录为空时，可直接<strong>选择连接器</strong>，以该连接建立模型草稿。模型尚未保存时，从建模指引中的<strong>添加数据源</strong>进入。</li>
   <li>填写模型内唯一且不含点号的数据源名称，再填写连接设置或将文件路径映射到表名。使用 SQLite 样例时，数据源名称填 <code>ledger</code>，<strong>数据库文件路径</strong>填 <code>ledger.db</code>。</li>
   <li>点击<strong>添加到草稿</strong>（Add to draft），再点击<strong>保存草稿</strong>。添加后若打开了配置面板，也可在面板内保存。要编辑已有连接，在数据源卡片点击<strong>配置</strong>。</li>
 </ol>
 <p>为 GraphLake 分配只读凭据，凭据字段填写服务端已配置的环境变量名。文件路径由 GraphLake 服务端解析。CSV 和 JSON Lines 需显式声明列类型，Parquet 文件自带结构。</p>
+<p>已配置的数据源显示对应的节点和边类型。按来源、连接器或映射类型搜索，点击类型可直接打开画布中的对应映射。返回数据源页时保留搜索词。</p>
 <figure>${image("source-add", "英文 SQLite 连接配置显示 ledger、ledger.db 和 Add to draft 按钮")}<figcaption>连接器配置完成后，点击 <strong>Add to draft</strong> 添加到模型草稿。</figcaption></figure>`],
         ["sqlite-demo", "准备 SQLite 样例", ({ code }) => `
 <p>在 GraphLake 主机上，将 <code>catalog_dir</code> 设为练习环境启动时 <code>--catalog-dir</code> 指定的目录，并确认目录中还没有 <code>ledger.db</code>。安装 <code>sqlite3</code> 后执行下方命令，确保 GraphLake 服务账号有文件读取权限。</p>
@@ -133,8 +134,9 @@ ${code("YAML", postgresSource)}
 <p>本教程使用管理员账号登录已启动的 GraphLake 控制台。编辑已有模型时，可以在<strong>图模型</strong>列表直接打开它。能否编辑和发布由${link("access", "模型权限")}决定。尚未启动服务时，参见${link("install", "安装指南")}。</p>
 <ol>
   <li>下载 ${asset("examples/transfer/accounts.csv", "accounts.csv")} 和 ${asset("examples/transfer/transfers.jsonl", "transfers.jsonl")}，放到服务启动参数 <code>--catalog-dir</code> 指定的目录。需要独立的练习环境时，可以使用${link("first-model", "第一个图模型教程")}中的样例目录，其中已有这两个文件。</li>
-  <li>选择<strong>图模型 → 新建模型</strong>，<strong>名称</strong>填写 <code>Transfer demo</code>，<strong>模型标识</strong>填写 <code>transfer-demo</code>，点击<strong>继续</strong>。API 和客户端可通过模型标识访问该模型。</li>
-</ol>`],
+  <li>在<strong>图模型</strong>中选择<strong>新建模型</strong>（首次使用时选择<strong>新建空白模型</strong>），<strong>名称</strong>填写 <code>Transfer demo</code>，<strong>模型标识</strong>填写 <code>transfer-demo</code>，点击<strong>继续</strong>。API 和客户端可通过模型标识访问该模型。</li>
+</ol>
+<p>首次进入时，可先点击<strong>探索订单示例</strong>，查看下单人、付款人及来源记录，无需创建模型。也可直接<strong>连接数据源</strong>建立草稿，或者导入已有 YAML。</p>`],
         ["ui-sources", "2. 接入两个样例文件", () => `
 <p>在建模指引中选择<strong>添加数据源</strong>。添加第二个来源时，从建模工具栏打开<strong>更多工具 → 添加数据源</strong>。模型保存后，可通过<strong>数据源</strong>入口管理连接。</p>
 <dl class="plain-list">
@@ -160,7 +162,7 @@ ${code("YAML", postgresSource)}
         ["publish", "5. 保存、校验并发布", ({ code, link }) => `
 <ol>
   <li>点击<strong>保存草稿</strong>。在<strong>更多工具</strong>中，<strong>校验结构</strong>检查映射配置，<strong>校验数据</strong>读取源数据，检查业务键重复、边端点找不到对应账户等问题。</li>
-  <li>点击<strong>校验并发布</strong>。发布会校验当前数据，成功后显示<strong>生效</strong>版本号。按钮不可用时，按建模指引补齐映射并保存修改，再确认自己的${link("access", "发布权限")}。</li>
+  <li>首次发布点击<strong>预览并发布</strong>，审阅影响后确认。已有生效版本的模型可通过<strong>保存并发布</strong>或<strong>发布草稿</strong>直接提交。服务端仍会校验模型并执行适用的固定业务场景检查。成功后显示生效版本号。按钮不可用时，按建模指引补齐映射，并确认自己的${link("access", "发布权限")}。</li>
   <li>打开<strong>查询</strong>，选择 <code>Transfer demo</code> 和 <strong>Cypher</strong>，粘贴并运行以下查询。</li>
 </ol>
 ${code("Cypher", directTransfers.replace("$account_id", "1"))}
@@ -169,9 +171,9 @@ ${code("Cypher", directTransfers.replace("$account_id", "1"))}
 <p>为每个节点标签选择稳定的行标识。如果账号 ID 在不同租户中重复，将租户 ID 纳入复合键。边的起点和终点列必须按相同顺序对应完整的节点键。</p>
 <p>下面的映射片段使用 PostgreSQL 中的账户表和 Parquet 中的转账表。查询可返回 <code>amount</code> 和 <code>event_time</code>，也可用它们做过滤。</p>
 ${code("YAML", mapping)}
-<p>通过<strong>更多工具 → 查看 YAML</strong>可以查看或下载当前草稿。有建模权限时，也可以直接编辑。${ref("examples/finance.yaml", "完整示例")}包含数据源定义。</p>`],
+<p>通过模型工具栏的<strong>画布</strong>与<strong>YAML</strong>切换视图，查看、编辑或下载同一份草稿。${ref("examples/finance.yaml", "完整示例")}包含数据源定义。</p>`],
         ["versions", "管理模型版本", ({ ref }) => `
-<p>编辑草稿时，查询继续使用生效版本。在<strong>更多工具 → 版本历史</strong>中选择已发布版本，可与当前草稿对照。拥有发布权限的用户可以回退到已发布的映射，也可以下线模型。恢复源数据需要单独的备份。</p>
+<p>编辑草稿时，查询继续使用生效版本。从建模工具栏直接打开<strong>版本历史</strong>。<strong>本次变更</strong>展示选中发布或回退记录相对前一条记录的变更，包括增删改和 YAML 差异，并标明服务端确认状态。使用<strong>对照当前草稿</strong>核对当前修改。拥有发布权限的用户可以预览回退到已发布的映射，也可以下线模型。恢复源数据需要单独的备份。</p>
 <p>多表映射、过滤及业务时间规则见${ref("docs/reference.zh-CN.md#多表图映射与业务时间", "模型参考")}。</p>`],
       ],
     },
@@ -195,10 +197,11 @@ ${code("JSON", '{"account_id":1}')}
 <p>其他错误码和复验方法见<a href="../troubleshoot/#query">查询报错排查</a>。</p>`],
         ["views", "切换查询结果视图", () => `
 <p>通过结果区域上方的标签页查看查询结果或已发布的图结构。</p>
+<p>窄屏的模型页头直接提供有权访问的模型工作区入口。自动适配的结果图随窗口大小变化重新适配，手动调整的缩放和平移则保留，可通过<strong>适配结果图</strong>或<strong>重置视图</strong>恢复自动适配。</p>
 <dl class="plain-list">
   <dt>图（Graph）</dt><dd>查看返回的节点、边和路径。点选图元素可以检查业务键和属性。只返回标量值时用<strong>表格</strong>查看。需要画图时，让语句返回节点、边或路径，例如 <code>RETURN p</code>。</dd>
   <dt>表格（Table）</dt><dd>查看返回的行和列类型。本例中 <code>p</code> 是路径，其余列是转账明细。</dd>
-  <dt>图结构（Graph schema）</dt><dd>查看已发布模型的节点标签、边类型、业务键和已映射属性。</dd>
+  <dt>图结构（Graph schema）</dt><dd>查看已发布模型的节点标签、边类型、业务键和已映射属性。选中类型后点击<strong>查看节点样例</strong>或<strong>查看关系样例</strong>，可查询最多 25 行，编辑器中的原语句保留。展开结果上方的<strong>查看本次执行的语句</strong>即可核对实际执行的 Cypher。</dd>
   <dt>原始响应（Raw response）</dt><dd>查看最近一次查询返回的 JSON。展开结果下方的<strong>执行详情</strong>，可核对模型版本和数据源版本。</dd>
 </dl>`],
         ["graph", "展开一跳邻居", ({ image }) => `

@@ -1,8 +1,9 @@
 export const repository = "https://github.com/SamuelSupe/graphlake";
-export const release = "v1.1.1";
+export const release = "v1.1.6";
+export const sourceDigestPrefix = "9d321ad6e7a9";
 export const reference = `${repository}/blob/${release}`;
 export const releasePage = `${repository}/releases/tag/${release}`;
-const artifact = `graphlake-${release}-82a661f2a132-linux`;
+const artifact = `graphlake-${release}-${sourceDigestPrefix}-linux`;
 const downloadBase = `${repository}/releases/download/${release}`;
 
 export const packages = ["x86_64", "aarch64"].map((arch) => {

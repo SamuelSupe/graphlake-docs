@@ -5,10 +5,10 @@ export default {
   description: "用服务账号连接已发布的 GraphLake 模型，通过 HTTP、Bolt 或 Gremlin 执行同一项只读查询并核对结果。",
   sections: [
     ["prepare", "准备已发布的模型", ({ code, image, link }) => `
-<p>示例使用 GraphLake v1.1.1 和 Python 3.11 或更新版本。已有模型 ID 为 <code>graph</code> 的转账样例时，直接使用并检查下面的监听配置。首次运行时，先安装 ${link("install", "GraphLake 安装包")}，将样例下载到新目录，再初始化管理员密码并启动服务。</p>
+<p>示例使用 GraphLake v1.1.6 和 Python 3.11 或更新版本。已有模型 ID 为 <code>graph</code> 的转账样例时，直接使用并检查下面的监听配置。首次运行时，先安装 ${link("install", "GraphLake 安装包")}，将样例下载到新目录，再初始化管理员密码并启动服务。</p>
 ${code("Shell", downloadSample)}
 ${code("Shell", clientWorkbench)}
-<p>打开 <code>http://127.0.0.1:7347</code>，以 <code>admin</code> 登录，进入<strong>图模型（Graph Models）</strong>。样例的显示名称是 <strong>text-files</strong>，模型 ID 为 <code>graph</code>。连接前确认状态是<strong>已发布（Published）</strong>。如果使用控制台创建的模型，先点击<strong>校验并发布（Validate and publish）</strong>，再将它的 ID 填入示例。</p>
+<p>打开 <code>http://127.0.0.1:7347</code>，以 <code>admin</code> 登录，进入<strong>图模型（Graph Models）</strong>。样例的显示名称是 <strong>text-files</strong>，模型 ID 为 <code>graph</code>。连接前确认状态是<strong>已发布（Published）</strong>。如果使用控制台新建的模型，先完成<strong>预览并发布（Preview and publish）</strong>，再将它的 ID 填入示例。</p>
 <figure>${image("clients-published-model", "英文 Graph Models 列表显示已发布的 text-files，模型 ID 为 graph")}<figcaption>在显示名称下方读取模型 ID。模型发布后，拥有相应查询权限的客户端即可访问。</figcaption></figure>
 <p>HTTP 使用控制台监听端口。<code>--driver-model graph</code> 启用 Gremlin 并设置驱动的默认模型。<code>--bolt-port 7687</code> 启用独立的 Bolt 监听端口。已有部署可在启动命令中加上所需参数后重启服务。</p>`],
     ["auth", "创建服务账号并授予查询权限", ({ code, image, link }) => `

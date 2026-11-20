@@ -1,6 +1,6 @@
 # GraphLake documentation site
 
-English and Simplified Chinese guides for GraphLake v1.1.1. [Live site](https://graphlake-docs.pages.dev/) · [中文文档](https://graphlake-docs.pages.dev/zh/). The English site starts at `/` and the Chinese site starts at `/zh/`. The output can also be served under a path prefix.
+English and Simplified Chinese guides for GraphLake v1.1.6. [Live site](https://graphlake-docs.pages.dev/) · [中文文档](https://graphlake-docs.pages.dev/zh/). The English site starts at `/` and the Chinese site starts at `/zh/`. The output can also be served under a path prefix.
 
 ## Build and preview
 

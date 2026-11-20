@@ -56,8 +56,8 @@ export function datasourcePage(zh) {
   return {
     title: zh ? "数据源目录" : "Data source catalog",
     description: zh
-      ? "按连接方式浏览 GraphLake v1.1.1 支持的数据源，找到对应的连接器、配置方式和运行依赖。"
-      : "Browse the data sources supported by GraphLake v1.1.1 and find the connector, settings, and prerequisites for each one.",
+      ? "按连接方式浏览 GraphLake v1.1.6 支持的数据源，找到对应的连接器、配置方式和运行依赖。"
+      : "Browse the data sources supported by GraphLake v1.1.6 and find the connector, settings, and prerequisites for each one.",
     sections: [
       ["start", zh ? "接入你的数据" : "Connect your data", ({ link, ref }) => zh
         ? `<p>先找到下方对应的卡片，再按${link("sources", "数据源接入教程")}在控制台添加连接并核对表结构。卡片中的 <code>type</code> 或 <code>storage.provider</code> 是模型 YAML 中对应的设置。</p><p>字段类型、认证配置和各协议的读取限制见${ref("docs/reference.zh-CN.md#图映射与连接器", "连接器参考")}。</p>`

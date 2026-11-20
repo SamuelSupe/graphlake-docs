@@ -5,10 +5,10 @@ export default {
   description: "Authenticate a service account and run the same read-only query against a published GraphLake model using HTTP, Bolt, or Gremlin.",
   sections: [
     ["prepare", "Prepare a published model", ({ code, image, link }) => `
-<p>Use GraphLake v1.1.1 and Python 3.11 or later. If you already have a published transfer sample with model ID <code>graph</code>, use it and check the listeners below. To start from scratch, install the ${link("install", "GraphLake package")}, copy the sample into a fresh directory, then initialize the admin password and start the service.</p>
+<p>Use GraphLake v1.1.6 and Python 3.11 or later. If you already have a published transfer sample with model ID <code>graph</code>, use it and check the listeners below. To start from scratch, install the ${link("install", "GraphLake package")}, copy the sample into a fresh directory, then initialize the admin password and start the service.</p>
 ${code("Shell", downloadSample)}
 ${code("Shell", clientWorkbench)}
-<p>Open <code>http://127.0.0.1:7347</code>, sign in as <code>admin</code>, and check <strong>Graph Models</strong>. The sample is displayed as <strong>text-files</strong> and its model ID is <code>graph</code>. Verify <strong>Published</strong> before connecting. For a model built in the console, select <strong>Validate and publish</strong> and use its ID in the examples.</p>
+<p>Open <code>http://127.0.0.1:7347</code>, sign in as <code>admin</code>, and check <strong>Graph Models</strong>. The sample is displayed as <strong>text-files</strong> and its model ID is <code>graph</code>. Verify <strong>Published</strong> before connecting. For a new model built in the console, complete <strong>Preview and publish</strong> and use its ID in the examples.</p>
 <figure>${image("clients-published-model", "English Graph Models directory showing text-files with model ID graph and Published status")}<figcaption>Use the model ID under the display name. The example model is visible to clients after publication and a matching query grant.</figcaption></figure>
 <p>HTTP is available on the console listener. <code>--driver-model graph</code> enables Gremlin and sets the default driver model. <code>--bolt-port 7687</code> enables the separate Bolt listener. For an existing install, add the required flags to the service launch command and restart it.</p>`],
     ["auth", "Create a service account and grant Query", ({ code, image, link }) => `

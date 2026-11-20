@@ -9,7 +9,7 @@ export default {
   description: "保留可恢复的检查点，升级 GraphLake 单机或集群，然后用同一模型版本和已知查询验收。",
   sections: [
     ["plan", "规划维护窗口并准备安装包", ({ asset, code, link }) => `
-<p>命令以 Debian 12、systemd 和 <code>/opt/graphlake/releases/</code> 布局为例，演示从 <code>v1.1.1</code> 升至 <code>v1.1.2</code>。先核对<a href="https://github.com/SamuelSupe/graphlake/releases/tag/v1.1.2">目标版本发行说明</a>，确认旧版能否读取维护窗口中可能写入的状态。若使用其他目标版本，同时替换安装包名、下载地址和验收的构建字符串。</p>
+<p>命令以 Debian 12、systemd 和 <code>/opt/graphlake/releases/</code> 布局为例，演示从 <code>v1.1.5</code> 升至 <code>v1.1.6</code>。先核对<a href="https://github.com/SamuelSupe/graphlake/releases/tag/v1.1.6">目标版本发行说明</a>，确认旧版能否读取维护窗口中可能写入的状态。若使用其他目标版本，同时替换安装包名、下载地址和验收的构建字符串。</p>
 <p>先在隔离环境用已知数据演练升级和恢复。列出各主机的 Coordinator 和 Worker 单元、共用 <code>/opt/graphlake/current</code> 的服务、实际业务入口，以及需要验收的协议。在各主机用 Bash 执行，保留当前终端供后续命令使用 <code>target</code> 和 <code>checkpoint</code>。</p>
 <p>${asset("examples/upgrade/graphlake-release.sh", "下载 graphlake-release.sh")}。下面的命令也可下载它。脚本校验归档、解压到独立目录，在指定服务停止期间原子切换链接。此示例沿用现有 systemd 单元、启动参数和覆盖配置。其他版本若要求修改单元，请先确认差异再重启。</p>
 ${code("Shell", upgradeInit)}

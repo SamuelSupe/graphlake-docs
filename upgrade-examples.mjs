@@ -1,7 +1,5 @@
-import { repository } from "./examples.mjs";
+import { repository, release as candidate, sourceDigestPrefix as build } from "./examples.mjs";
 
-const candidate = "v1.1.2";
-const build = "d35872571161";
 export const upgradeInit = `set -euo pipefail
 work_dir=$(mktemp -d)
 cd "$work_dir"

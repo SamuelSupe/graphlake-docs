@@ -8,7 +8,7 @@ export default {
 <p>最短路径找出跳数最少的路线。PageRank 根据有向关系为节点打分。弱连通分量（WCC）忽略边的方向，将彼此相连的节点分组。样例包含三个相连账户和一个孤立账户。</p>
 <p>把${link("first-model", "转账样例")}下载到新目录，并添加账号 <code>4</code>（Dana）。两笔转账为 Alice → Bob → Carol。实时查询和 CSR 示例使用同一组文件。</p>
 ${code("Shell", csrSample)}
-<p>实时 Cypher 可在单机工作台或集群上运行，需先发布样例模型。分区 CSR 需要 GraphLake v1.1.1、etcd 网关、共享存储及 Worker，参见${link("cluster", "集群安装")}。使用样例集群配置里的 <code>distributed_partitions: 4</code>。启动新的测试集群前，将三个文件放入其 catalog 目录，确保 Coordinator 与 Worker 可读。在<strong>图模型（Graph Models）</strong>中确认模型 ID 为 <code>graph</code>，状态为<strong>已发布（Published）</strong>。</p>
+<p>实时 Cypher 可在单机工作台或集群上运行，需先发布样例模型。分区 CSR 需要 GraphLake v1.1.6、etcd 网关、共享存储及 Worker，参见${link("cluster", "集群安装")}。使用样例集群配置里的 <code>distributed_partitions: 4</code>。启动新的测试集群前，将三个文件放入其 catalog 目录，确保 Coordinator 与 Worker 可读。在<strong>图模型（Graph Models）</strong>中确认模型 ID 为 <code>graph</code>，状态为<strong>已发布（Published）</strong>。</p>
 <p>CSR（压缩稀疏行）将图的邻接关系保存为一个已发布的代次，同时记录构建时的图范围、数据源版本及模型发布版本。发布新代次前，快照内容保持固定。</p>`],
     ["build", "创建 CSR 代次", ({ asset, code }) => `
 <p>${asset("examples/algorithms/csr_demo.py", "下载 csr_demo.py")}，用 Python 3 运行。脚本提示输入内置 <code>admin</code> 密码，输入内容不回显。它通过 HTTP 会话认证，并发送同源的 <code>Origin</code> 请求头。用 <code>GRAPHLAKE_ORIGIN</code> 设置实际的 HTTPS 地址或转发后的回环地址，用 <code>GRAPHLAKE_MODEL</code> 设置已发布模型的 ID。默认值分别为 <code>http://127.0.0.1:7337</code> 和 <code>graph</code>。</p>

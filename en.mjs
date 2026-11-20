@@ -95,11 +95,12 @@ ${code("Cypher", graphQuery)}
         ["configure", "Add a source in the workbench", ({ image }) => `
 <p>Sign in as an administrator. To follow the screenshots, prepare the <a href="#sqlite-demo">SQLite sample</a> before adding the connection.</p>
 <ol>
-  <li>Open <strong>Data Sources</strong> in the console and select the model you want to configure. Select <strong>Add data source</strong>, search for the connector, and choose <strong>Configure</strong> on its card. In a new, unsaved model, start from <strong>Add data source</strong> in the modeling guide.</li>
+  <li>Open <strong>Data Sources</strong> in the console and select the model you want to configure. Select <strong>Add data source</strong>, search for the connector, and choose <strong>Configure</strong> on its card. With an empty model library, select <strong>Choose a connector</strong> to start a new model draft from the connection. In an unsaved model, use <strong>Add data source</strong> in the modeling guide.</li>
   <li>Give the source a name unique within the model, without periods. Enter the connection settings or map file paths to table names. For the SQLite sample, use <code>ledger</code> as the name and <code>ledger.db</code> as the <strong>Database file path</strong>.</li>
   <li>Select <strong>Add to draft</strong>, then <strong>Save draft</strong>. If the configuration panel opens after adding the source, you can save inside that panel. To edit an existing connection, open <strong>Configure</strong> on its source card.</li>
 </ol>
 <p>Use read-only credentials and supply the names of server-side environment variables for credential fields. File paths are resolved on the GraphLake server. CSV and JSON Lines require explicit column types, and Parquet carries its schema.</p>
+<p>Each configured source lists its mapped node and relationship types. Search by type or connector, then select a mapped type to open its mapping on the canvas. Returning to Data Sources keeps the current search.</p>
 <figure>${image("source-add", "English Configure SQLite panel showing the ledger source name, ledger.db path, and Add to draft")}<figcaption>Choose <strong>Add to draft</strong> after filling in the connector settings.</figcaption></figure>`],
         ["sqlite-demo", "Prepare the SQLite sample", ({ code }) => `
 <p>On the GraphLake host, set <code>catalog_dir</code> to the path passed to <code>--catalog-dir</code> for your practice console. Use a directory without an existing <code>ledger.db</code>. Run this command with <code>sqlite3</code> installed, and make the new file readable by the GraphLake service account.</p>
@@ -133,8 +134,9 @@ ${code("YAML", postgresSource)}
 <p>Follow the ${link("install", "installation guide")} to start the console, then sign in as an administrator for this walkthrough. To work on an existing model, open its name in <strong>Graph Models</strong>. Access to editing and publishing depends on your ${link("access", "model permissions")}.</p>
 <ol>
   <li>Download ${asset("examples/transfer/accounts.csv", "accounts.csv")} and ${asset("examples/transfer/transfers.jsonl", "transfers.jsonl")}. Put both files in the running server’s catalog directory, set by <code>--catalog-dir</code>. For a separate playground, use the catalog in ${link("first-model", "the first graph tutorial")}, which already contains the files.</li>
-  <li>In <strong>Graph Models → New model</strong>, enter <code>Transfer demo</code> for <strong>Name</strong> and <code>transfer-demo</code> for <strong>Model ID</strong>. Select <strong>Continue</strong>. The ID identifies the model in API calls and client connections.</li>
-</ol>`],
+  <li>In <strong>Graph Models</strong>, select <strong>New model</strong> (or <strong>Create a blank model</strong> if this is your first model). Enter <code>Transfer demo</code> for <strong>Name</strong> and <code>transfer-demo</code> for <strong>Model ID</strong>. Select <strong>Continue</strong>. The ID identifies the model in API calls and client connections.</li>
+</ol>
+<p>On the first-use screen, <strong>Explore the example</strong> lets you inspect who placed and paid for sample orders without creating a model. Choose <strong>Connect a data source</strong> to start with your own connection. You can also import an existing YAML model.</p>`],
         ["ui-sources", "2. Connect the two source files", () => `
 <p>Select <strong>Add data source</strong> in the setup guide. For the second source, use <strong>More tools → Add data source</strong> in the modeling toolbar. In a saved model, use <strong>Data Sources</strong>.</p>
 <dl class="plain-list">
@@ -160,7 +162,7 @@ ${code("YAML", postgresSource)}
         ["publish", "5. Save, validate, and publish", ({ code, link }) => `
 <ol>
   <li>Select <strong>Save draft</strong> to keep the mapping. In <strong>More tools</strong>, use <strong>Validate schema</strong> to check the mapping and <strong>Validate data</strong> to check the source rows. For example, check for duplicate keys or transfers whose endpoints have no matching account.</li>
-  <li>Select <strong>Validate and publish</strong>. Publishing checks the current data and shows an <strong>Active</strong> revision when it succeeds. If saving or publishing is unavailable, check the setup guide for incomplete mappings, save unsaved changes, and confirm your ${link("access", "permissions")}.</li>
+  <li>For the first publication, select <strong>Preview and publish</strong>, review the impact, and confirm publication. On an existing published model, select <strong>Save and publish</strong> or <strong>Publish draft</strong> for direct publication. The server still validates the model and applicable fixed business scenarios. A successful publication shows the active revision. If saving or publishing is unavailable, check the setup guide and confirm your ${link("access", "permissions")}.</li>
   <li>Open <strong>Query</strong>, select <code>Transfer demo</code> and <strong>Cypher</strong>, then paste and run this query.</li>
 </ol>
 ${code("Cypher", directTransfers.replace("$account_id", "1"))}
@@ -169,9 +171,9 @@ ${code("Cypher", directTransfers.replace("$account_id", "1"))}
 <p>Choose a row identifier for each node label. Include tenant identity in the key when account IDs repeat across tenants. A relationship maps its source and destination columns to the full node keys in the same order.</p>
 <p>In this mapping excerpt, <code>Account</code> rows come from PostgreSQL and <code>Transfer</code> rows come from Parquet. <code>amount</code> and <code>event_time</code> can be returned or filtered in queries.</p>
 ${code("YAML", mapping)}
-<p>Use <strong>More tools → View YAML</strong> to inspect or download the draft, or edit it if you have modeling permission. The ${ref("examples/finance.yaml", "complete example")} includes the source definitions.</p>`],
+<p>Switch between <strong>Canvas</strong> and <strong>YAML</strong> in the model toolbar to inspect, edit, or download the same draft. The ${ref("examples/finance.yaml", "complete example")} includes the source definitions.</p>`],
         ["versions", "Manage model revisions", ({ ref }) => `
-<p>Queries use the active revision while you edit. In <strong>More tools → Version history</strong>, select a published version to compare it with the current draft. A publisher can roll back to a previous published mapping or take the model offline. Restoring source data requires a separate backup.</p>
+<p>Queries use the active revision while you edit. Open <strong>Version history</strong> directly from the modeling toolbar. <strong>Release changes</strong> shows the selected server-confirmed operation relative to the preceding record, including added, modified, and removed types and a YAML diff. Use <strong>Compare with draft</strong> to include current edits. A publisher can preview a rollback to a previous mapping or take the model offline. Restoring source data requires a separate backup.</p>
 <p>For multi-table mappings, filters, and business-time rules, see the ${ref("docs/reference.zh-CN.md#多表图映射与业务时间", "model reference")}.</p>`],
       ],
     },
@@ -194,10 +196,11 @@ ${code("JSON", '{"account_id":1}')}
 <figure>${image("query-parameters", "English Query workspace with account_id set to 1 and the Table tab showing Alice, Bob, and 12.25")}<figcaption>Enter the statement in the editor and its JSON parameters in <strong>Query options</strong>.</figcaption></figure>`],
         ["views", "Switch result views", () => `
 <p>Use the tabs above the results to inspect the query output or the published schema.</p>
+<p>On small screens, the model header provides direct links to the workspaces available to you. An automatically fitted result graph adapts to changes in window size. Manual pan and zoom are preserved until you choose <strong>Fit graph to view</strong> or <strong>Reset view</strong>.</p>
 <dl class="plain-list">
   <dt>Graph</dt><dd>Explore returned nodes, edges, and paths. Select an element to inspect its business key and properties. For a query that returns only scalar values, use <strong>Table</strong>. To populate the graph, return a node, edge, or path such as <code>RETURN p</code>.</dd>
   <dt>Table</dt><dd>Read the returned rows and column types. In this example, <code>p</code> is the path and the other columns show the transfer details.</dd>
-  <dt>Graph schema</dt><dd>Inspect the published model’s node labels, edge types, business keys, and mapped properties.</dd>
+  <dt>Graph schema</dt><dd>Inspect the published model’s node labels, edge types, business keys, and mapped properties. Select a type and choose <strong>View sample nodes</strong> or <strong>View sample relationships</strong> to query up to 25 rows without changing the editor. Expand <strong>Show executed query</strong> above the results to see its Cypher statement.</dd>
   <dt>Raw response</dt><dd>Inspect the latest query’s response JSON. Open <strong>Execution details</strong> below the results to check the model revision and source versions.</dd>
 </dl>`],
         ["graph", "Expand one-hop neighbors", ({ image }) => `

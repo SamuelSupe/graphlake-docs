@@ -33,11 +33,11 @@ ${code("Shell", "sudo journalctl -u graphlake.service --since '30 minutes ago' -
     ["query", "查询报错", ({ image, link }) => `
 <ol>
   <li><strong>记录报错和输入。</strong>在<strong>查询（Query）</strong>工作台记录错误消息、模型、查询语言和参数。API 客户端还应记录 HTTP 状态和错误码。用成功对照查询的<strong>执行明细（Execution details）</strong>查看模型与来源版本。请求已经到达服务时，按报错时间查看 Coordinator 和执行 Worker 的日志。</li>
-  <li><strong>按错误类型处理。</strong>语法或不支持的操作报错时，核对语言并缩小到只读语句。Cypher 缺参时，打开<strong>查询选项（Query options）</strong>，传入键名与类型正确的 JSON 对象。权限问题检查当前账号的模型查询权限及租户范围。遇到 <code>active_revision_changed</code> 时重新加载发布版本。遇到 <code>503 source_unavailable</code> 或 <code>worker_unavailable</code> 时，分别按<a href="#source">数据源</a>或 <a href="#worker">Worker</a> 的步骤排查。</li>
+  <li><strong>按错误类型处理。</strong>语法或不支持的操作报错时，核对语言并缩小到只读语句。Cypher 缺参时，打开<strong>Cypher 参数（Parameters）</strong>，传入键名与类型正确的 JSON 对象。权限问题检查当前账号的模型查询权限及租户范围。遇到 <code>active_revision_changed</code> 时重新加载发布版本。遇到 <code>503 source_unavailable</code> 或 <code>worker_unavailable</code> 时，分别按<a href="#source">数据源</a>或 <a href="#worker">Worker</a> 的步骤排查。</li>
   <li><strong>用相同输入复验。</strong>先按一个已知键运行小查询，再用原账号和原参数重跑原查询。在<strong>表格（Table）</strong>视图核对预期值和行数，并检查成功执行时使用的发布版本和来源版本。</li>
 </ol>
 <p>超时时先缩小过滤范围、限制跳数，用 <code>EXPLAIN</code> 检查执行计划再调整预算。结果为空时还应检查边方向、租户和时间过滤。预览被截断或邻居会话过期时，见${link("query", "查询与探索")}中的分页、重跑和导出说明。可用${link("query-recipes", "查询示例")}做已知结果的对照。</p>
-<figure>${image("trouble-query", "英文 Query 工作台提示缺少 Cypher 参数 account_id")}<figcaption>查询使用了 <code>$account_id</code>。在 <strong>Query options</strong> 中填入对应参数后重跑。</figcaption></figure>`],
+<figure>${image("trouble-query", "英文 Query 工作台提示缺少 Cypher 参数 account_id")}<figcaption>查询使用了 <code>$account_id</code>。在 <strong>Cypher 参数</strong> 中填入对应参数后重跑。</figcaption></figure>`],
     ["worker", "Worker 离线", ({ image, link }) => `
 <ol>
   <li><strong>锁定异常节点。</strong>打开<strong>运行配置 → 健康检查 → 模型健康</strong>，检查已发布模型并展开数据源和 Worker 明细。记录失败节点的地址和消息。<strong>Connection failed</strong> 时优先检查进程和私网链路。若 Worker 报告具体数据源不可用，检查该节点到来源的访问。</li>

@@ -1,6 +1,6 @@
 # GraphLake documentation site
 
-English and Simplified Chinese guides for GraphLake v1.1.6. [Live site](https://graphlake-docs.pages.dev/) · [中文文档](https://graphlake-docs.pages.dev/zh/). The English site starts at `/` and the Chinese site starts at `/zh/`. The output can also be served under a path prefix.
+English and Simplified Chinese guides for GraphLake v1.1.8. [Live site](https://graphlake-docs.pages.dev/) · [中文文档](https://graphlake-docs.pages.dev/zh/). The English site starts at `/` and the Chinese site starts at `/zh/`. The output can also be served under a path prefix.
 
 ## Build and preview
 
@@ -27,7 +27,7 @@ The release machine needs Git, npm and a Wrangler login with deployment access t
 
 - Edit corresponding English and Chinese guides together. Operations guides live in `operations-en.mjs` and `operations-zh.mjs`. The troubleshooting guides live in `troubleshooting-en.mjs` and `troubleshooting-zh.mjs`. Keep the section IDs and their ordering matched so language switching preserves the section.
 - Keep commands and version-specific download URLs in `examples.mjs`. Check them against the release artifacts before updating the documented version.
-- `assets/` holds the site's styles, client script, and English GraphLake v1.1.1 screenshots. The workbench uses the Parquet example. The model editor and query walkthrough use the CSV and JSON Lines transfer example. The source browser and sync walkthrough use the SQLite fixture in `handbook-examples.mjs`. The connector artwork and its license come from `web/src/assets/connectors/`.
+- `assets/` holds the site's styles, client script, and English GraphLake v1.1.1 screenshots. These historical captures illustrate the workflows; follow the current v1.1.8 button names and model-centered navigation in the text. The workbench uses the Parquet example. The model editor and query walkthrough use the CSV and JSON Lines transfer example. The source browser and sync walkthrough use the SQLite fixture in `handbook-examples.mjs`. The connector artwork and its license come from `web/src/assets/connectors/`.
 - The home page uses the GraphLake console’s cobalt palette and responsive, decorative glass-layer artwork in `assets/graph-layers.webp` and `assets/graph-layers-small.webp`. Landing-page styles live in `assets/home.css`; shared navigation and article styles live in `assets/site.css`. Geist and Geist Mono are served locally under `assets/LICENSE-geist.txt`.
 - `assets/graphlake-logo.png` is the [official GraphLake mark](https://github.com/SamuelSupe/graphlake/blob/6857b723de2f7cdad5955a8ddb0afc5719e494d3/docs/images/graphlake-logo.png). The header and favicon use this same image.
 - The bilingual handbook and documentation index live in `handbook-en.mjs` and `handbook-zh.mjs`. The build generates the search index from the guide content.
@@ -37,4 +37,4 @@ The release machine needs Git, npm and a Wrangler login with deployment access t
 - The developer integration guides live in `clients-en.mjs` and `clients-zh.mjs`. Their code blocks and downloads share the runnable Python files in `assets/examples/clients/`. The `clients-*.jpg` screenshots show the published sample and its query-only service account in the English console.
 - The `trouble-*.jpg` screenshots show actual error states in the English console using isolated sample data.
 - `datasources.mjs` holds the bilingual catalog cards. Compare connector types and object-storage providers against the documented GraphLake release before changing the list. Logos come from the product’s [connector assets](https://github.com/SamuelSupe/graphlake/tree/v1.1.1/web/src/assets/connectors).
-- The transfer sample in `assets/examples/transfer/` comes from [GraphLake v1.1.1 examples/text](https://github.com/SamuelSupe/graphlake/tree/v1.1.1/examples/text). Keep the sample queries and expected results in sync with it.
+- The transfer sample in `assets/examples/transfer/` comes from [GraphLake v1.1.8 examples/text](https://github.com/SamuelSupe/graphlake/tree/v1.1.8/examples/text). Keep the sample queries and expected results in sync with it.

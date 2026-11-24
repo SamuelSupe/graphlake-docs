@@ -17,6 +17,7 @@ export default {
       ["configure", "2. 配置单主机集群", ({ code }) => `
 <p>将下方配置保存为 <code>cluster.yaml</code>。示例使用两个回环 Worker 和一个私有的本地存储目录。Coordinator 的工作台端口为 <code>7337</code>，进程状态端口为 <code>7338</code>。</p>
 ${code("YAML", labCluster)}
+<p><code>memory_mib</code> 控制单次 Worker 执行或 CSR 构建预算，<code>process_memory_mib</code> 控制进程查询准入总预算。需为远端阶段、运行时开销及文件缓存留出空间。Delta 快照共享同一准入控制器的有界元数据缓存；同步及来源探测采用独立的准入限额。</p>
 <p>安装配置，在环境文件中设置 <code>GRAPHLAKE_CLUSTER_TOKEN</code>，值可用 <code>openssl rand -hex 32</code> 生成。Coordinator 与 Worker 使用相同令牌，并从该文件载入模型引用的源凭据变量。</p>
 ${code("Shell", installClusterConfig)}`],
       ["start", "3. 启动 Worker 和 Coordinator", ({ code, link }) => `

@@ -46,6 +46,7 @@ export default {
       sections: [
         ["download", "1. 下载并校验", ({ code, releasePage }) => `
 <p>准备具备 <code>sudo</code> 权限、glibc 2.36 或更高版本的主机。<a href="${releasePage}">${release} 发行包</a>包含命令行工具、管理服务、已构建的工作台和 systemd 配置。运行 <code>uname -m</code> 确认架构，下载对应的压缩包和校验文件。</p>
+<p>v1.1.8 包含现代化模型工作区、无需业务校验时的直接发布、查询正确性和有界执行改进，以及更稳定的托管同步与集群恢复。双架构安装包均通过发布验收。</p>
 ${packagesList("SHA-256 校验文件")}
 <p>也可以在下载目录执行以下命令。校验输出 <code>OK</code> 后，在同一个终端会话继续安装。</p>
 ${code("Shell", download)}`],
@@ -95,7 +96,7 @@ ${code("Cypher", graphQuery)}
         ["configure", "在工作台添加数据源", ({ image }) => `
 <p>使用管理员账号登录。要跟着截图操作，先<a href="#sqlite-demo">准备 SQLite 样例</a>，再添加连接。</p>
 <ol>
-  <li>在控制台打开<strong>数据源</strong>（Data Sources），选中要配置的模型。点击<strong>添加数据源</strong>，搜索连接器，再点其卡片上的<strong>配置</strong>。模型目录为空时，可直接<strong>选择连接器</strong>，以该连接建立模型草稿。模型尚未保存时，从建模指引中的<strong>添加数据源</strong>进入。</li>
+  <li>在<strong>模型目录</strong>打开要配置的模型，进入该模型工作区的<strong>数据源</strong>（Data Sources）。点击<strong>添加数据源</strong>，搜索连接器，再点其卡片上的<strong>配置</strong>。模型目录为空时，可直接<strong>选择连接器</strong>，以该连接建立模型草稿。模型尚未保存时，从建模指引中的<strong>添加数据源</strong>进入。</li>
   <li>填写模型内唯一且不含点号的数据源名称，再填写连接设置或将文件路径映射到表名。使用 SQLite 样例时，数据源名称填 <code>ledger</code>，<strong>数据库文件路径</strong>填 <code>ledger.db</code>。</li>
   <li>点击<strong>添加到草稿</strong>（Add to draft），再点击<strong>保存草稿</strong>。添加后若打开了配置面板，也可在面板内保存。要编辑已有连接，在数据源卡片点击<strong>配置</strong>。</li>
 </ol>
@@ -131,10 +132,10 @@ ${code("YAML", postgresSource)}
       description: "在控制台从两个文件建立账户转账图，在画布上配置节点和有向边，发布后用查询核对结果。",
       sections: [
         ["ui-start", "1. 新建图模型", ({ asset, link }) => `
-<p>本教程使用管理员账号登录已启动的 GraphLake 控制台。编辑已有模型时，可以在<strong>图模型</strong>列表直接打开它。能否编辑和发布由${link("access", "模型权限")}决定。尚未启动服务时，参见${link("install", "安装指南")}。</p>
+<p>本教程使用管理员账号登录已启动的 GraphLake 控制台。从<strong>模型目录</strong>打开模型后，可在该模型工作区切换<strong>图模型</strong>、<strong>数据源</strong>和<strong>查询</strong>。本指南截图展示较早的控制台布局，请以文字说明的当前按钮名称为准。能否编辑和发布由${link("access", "模型权限")}决定。尚未启动服务时，参见${link("install", "安装指南")}。</p>
 <ol>
   <li>下载 ${asset("examples/transfer/accounts.csv", "accounts.csv")} 和 ${asset("examples/transfer/transfers.jsonl", "transfers.jsonl")}，放到服务启动参数 <code>--catalog-dir</code> 指定的目录。需要独立的练习环境时，可以使用${link("first-model", "第一个图模型教程")}中的样例目录，其中已有这两个文件。</li>
-  <li>在<strong>图模型</strong>中选择<strong>新建模型</strong>（首次使用时选择<strong>新建空白模型</strong>），<strong>名称</strong>填写 <code>Transfer demo</code>，<strong>模型标识</strong>填写 <code>transfer-demo</code>，点击<strong>继续</strong>。API 和客户端可通过模型标识访问该模型。</li>
+  <li>在<strong>模型目录</strong>中选择<strong>新建模型</strong>（首次使用时选择<strong>新建空白模型</strong>），<strong>名称</strong>填写 <code>Transfer demo</code>，<strong>模型标识</strong>填写 <code>transfer-demo</code>，点击<strong>继续</strong>。API 和客户端可通过模型标识访问该模型。</li>
 </ol>
 <p>首次进入时，可先点击<strong>探索订单示例</strong>，查看下单人、付款人及来源记录，无需创建模型。也可直接<strong>连接数据源</strong>建立草稿，或者导入已有 YAML。</p>`],
         ["ui-sources", "2. 接入两个样例文件", () => `
@@ -162,8 +163,8 @@ ${code("YAML", postgresSource)}
         ["publish", "5. 保存、校验并发布", ({ code, link }) => `
 <ol>
   <li>点击<strong>保存草稿</strong>。在<strong>更多工具</strong>中，<strong>校验结构</strong>检查映射配置，<strong>校验数据</strong>读取源数据，检查业务键重复、边端点找不到对应账户等问题。</li>
-  <li>首次发布点击<strong>预览并发布</strong>，审阅影响后确认。已有生效版本的模型可通过<strong>保存并发布</strong>或<strong>发布草稿</strong>直接提交。服务端仍会校验模型并执行适用的固定业务场景检查。成功后显示生效版本号。按钮不可用时，按建模指引补齐映射，并确认自己的${link("access", "发布权限")}。</li>
-  <li>打开<strong>查询</strong>，选择 <code>Transfer demo</code> 和 <strong>Cypher</strong>，粘贴并运行以下查询。</li>
+  <li>无需业务校验的模型（包括首次发布）可点击<strong>保存并发布</strong>或<strong>发布草稿</strong>直接提交。配置了业务任务时，点击<strong>预览并发布</strong>，审阅场景结果后确认。服务端仍会校验模型及适用的业务场景。成功后显示生效版本号。按钮不可用时，按建模指引补齐映射，并确认自己的${link("access", "发布权限")}。</li>
+  <li>在 <code>Transfer demo</code> 模型工作区打开<strong>查询</strong>，选择 <strong>Cypher</strong>，粘贴并运行以下查询。</li>
 </ol>
 ${code("Cypher", directTransfers.replace("$account_id", "1"))}
 <p class="note"><strong>预期结果</strong> 表格返回一行，转出方是 Alice，收款方是 Bob，金额为 12.25。</p>`],
@@ -173,7 +174,7 @@ ${code("Cypher", directTransfers.replace("$account_id", "1"))}
 ${code("YAML", mapping)}
 <p>通过模型工具栏的<strong>画布</strong>与<strong>YAML</strong>切换视图，查看、编辑或下载同一份草稿。${ref("examples/finance.yaml", "完整示例")}包含数据源定义。</p>`],
         ["versions", "管理模型版本", ({ ref }) => `
-<p>编辑草稿时，查询继续使用生效版本。从建模工具栏直接打开<strong>版本历史</strong>。<strong>本次变更</strong>展示选中发布或回退记录相对前一条记录的变更，包括增删改和 YAML 差异，并标明服务端确认状态。使用<strong>对照当前草稿</strong>核对当前修改。拥有发布权限的用户可以预览回退到已发布的映射，也可以下线模型。恢复源数据需要单独的备份。</p>
+<p>编辑草稿时，查询继续使用生效版本。从建模工具栏直接打开<strong>版本历史</strong>。<strong>本次变更</strong>展示选中发布或回退记录相对前一条记录的变更，包括增删改和 YAML 差异，并标明服务端确认状态。使用<strong>对照当前草稿</strong>核对当前修改。拥有发布权限的用户可选中历史映射并确认回退，不会丢弃工作草稿；需要业务校验时先预览并确认。也可以下线模型。恢复源数据需要单独的备份。</p>
 <p>多表映射、过滤及业务时间规则见${ref("docs/reference.zh-CN.md#多表图映射与业务时间", "模型参考")}。</p>`],
       ],
     },
@@ -182,18 +183,18 @@ ${code("YAML", mapping)}
       description: "在控制台运行带参数的查询，切换结果视图，并沿关系逐跳探索。",
       sections: [
         ["run", "选择已发布的模型", ({ code, link }) => `
-<p>打开<strong>查询</strong>（Query），选择已发布的模型。本教程使用${link("model", "画布建模教程")}中的 <code>Transfer demo</code>。也可以在${link("first-model", "第一个图模型教程")}发布的 <code>graph</code> 模型中运行同一条查询。</p>
+<p>在<strong>模型目录</strong>打开已发布模型，再进入该模型工作区的<strong>查询</strong>（Query）。本教程使用${link("model", "画布建模教程")}中的 <code>Transfer demo</code>。也可以在${link("first-model", "第一个图模型教程")}发布的 <code>graph</code> 模型中运行同一条查询。</p>
 <p>在<strong>运行查询</strong>旁选择 <strong>Cypher</strong>，将下面的语句粘贴到<strong>查询语句</strong>编辑器。路径 <code>p</code> 用于绘图，转出方、收款方和金额可在表格中核对。SQL 和 Gremlin 的用法见${link("query-recipes", "查询示例")}。</p>
 ${code("Cypher", workbenchPath)}`],
         ["parameters", "设置 Cypher 查询参数", ({ code, image }) => `
 <ol>
-  <li>在编辑器下方打开<strong>查询选项 → Cypher 参数（JSON）</strong>，粘贴下方的 JSON 对象。键名写 <code>account_id</code>，省略 <code>$</code>。样例的账户 ID 是 <code>Int64</code>，因此值 <code>1</code> 用数字填写。</li>
+  <li>在编辑器下方打开<strong>Cypher 参数</strong>，粘贴下方的 JSON 对象。键名写 <code>account_id</code>，省略 <code>$</code>。样例的账户 ID 是 <code>Int64</code>，因此值 <code>1</code> 用数字填写。</li>
   <li>点击<strong>运行查询</strong>，切换到<strong>表格</strong>核对一行结果。Alice 向 Bob 转账 <code>12.25</code>。</li>
   <li>把参数值改为 <code>2</code> 并再次运行，结果变为 Bob 向 Carol 转账 <code>25.50</code>。练习展开邻居前，把参数改回 <code>1</code> 并再运行一次。</li>
 </ol>
 ${code("JSON", '{"account_id":1}')}
-<p>遇到参数错误时，检查输入是否为 JSON 对象，键名是否用双引号包裹并与语句中 <code>$</code> 后的名称一致。参数框在选择 Cypher 后显示。<strong>超时（毫秒）</strong>留空时使用服务端默认值。</p>
-<figure>${image("query-parameters", "英文查询工作台将 account_id 设为 1，表格显示 Alice、Bob 和金额 12.25")}<figcaption>在编辑器中输入查询语句，在 <strong>Query options</strong> 中填写 JSON 参数。</figcaption></figure>
+<p>遇到参数错误时，检查输入是否为 JSON 对象，键名是否用双引号包裹并与语句中 <code>$</code> 后的名称一致。参数框在选择 Cypher 后显示。<strong>查询范围</strong>用于图范围过滤条件与快照时间；<strong>高级选项</strong>用于超时、保留完整结果、新鲜度策略与已发布 CSR。<strong>超时（毫秒）</strong>留空时使用服务端默认值。</p>
+<figure>${image("query-parameters", "英文查询工作台将 account_id 设为 1，表格显示 Alice、Bob 和金额 12.25")}<figcaption>旧版控制台截图。v1.1.8 中点击编辑器下方的<strong>Cypher 参数</strong>填写 JSON 对象。</figcaption></figure>
 <p>其他错误码和复验方法见<a href="../troubleshoot/#query">查询报错排查</a>。</p>`],
         ["views", "切换查询结果视图", () => `
 <p>通过结果区域上方的标签页查看查询结果或已发布的图结构。</p>
@@ -213,7 +214,7 @@ ${code("JSON", '{"account_id":1}')}
 <p>每次展开查找选中节点的一跳邻居。若还有匹配项，点击<strong>加载下一页</strong>可为同一节点加入下一批。要向外再走一跳，请选中新加入的节点再展开。<strong>表格</strong>和<strong>原始响应</strong>读取的是查询执行结果。模型版本切换后，重新运行查询再继续探索。</p>
 <figure>${image("query-neighbors", "英文图探索画布显示 Alice 到 Bob 到 Carol，选中 Bob 后可看到出边和 Transfer 展开筛选")}<figcaption>展开 Bob 的转账出边后，Carol 加入画布。标签页上方的行数统计对应查询执行结果。</figcaption></figure>`],
         ["export", "处理大结果集", ({ link, ref }) => `
-<p>工作台显示有界预览。无需继续的查询可以取消。需要完整结果时，使用具备查询和导出权限的账号开启完整结果捕获，下载 Arrow IPC。探索大图时使用过滤条件、跳数限制与资源限制。</p>
+<p>工作台显示有界预览。无需继续的查询可以取消。需要完整结果时，使用具备查询和导出权限的账号运行前打开<strong>高级选项 → 保留完整结果</strong>，下载 Arrow IPC。探索大图时使用过滤条件、跳数限制与资源限制。</p>
 <p>应用可使用 HTTP、Bolt、Gremlin WebSocket、CLI 或嵌入式 Rust。更多信息见${ref("docs/reference.zh-CN.md#查询语义与资源控制", "查询语义与协议")}和${ref("docs/reference.zh-CN.md#整图算法", "整图算法")}，包括最短路径、PageRank、社区发现等。</p>
 <p>查看可运行的最短路径、PageRank 和连通分量示例，参见${link("algorithms", "图算法与 CSR")}。</p>`],
       ],
@@ -255,7 +256,7 @@ ${code("Shell", syncDemoUpdate)}
         ["managed", "在 HA 集群使用托管快照", ({ code, link }) => `
 <p>在${link("cluster", "启用 Coordinator 故障接管的集群")}中，通过共享集群配置开启托管本地表。Coordinator 和 Worker 使用同一 etcd 命名空间与 S3 兼容存储前缀，Worker 可直接从对象存储读取托管快照。</p>
 ${code("YAML", "managed_local_tables: true\nlocal_snapshot_retention_seconds: 86400\nlocal_snapshot_gc_grace_seconds: 300")}
-<p>新建并加载托管表，将模型切换到 <code>local-table://&lt;表 UUID&gt;</code> 引用并发布。迁移期间已有映射可继续读取文件副本。GraphLake 回收符合条件的旧代次，并保留查询或备份仍在使用的快照。桶生命周期规则适用于未完成的分段上传和非当前对象版本，活跃对象由 GraphLake 管理。</p>`],
+<p>新建并加载托管表，将模型切换到 <code>local-table://&lt;表 UUID&gt;</code> 引用并发布。迁移期间已有映射可继续读取文件副本。GraphLake 回收符合条件的旧代次，并保留查询或备份仍在使用的快照。托管同步取消或超时后，执行槽仍会保留至实际后台工作结束。桶生命周期规则适用于未完成的分段上传和非当前对象版本，活跃对象由 GraphLake 管理。</p>`],
       ],
     },
     mcp: {
@@ -314,7 +315,7 @@ ${code("Cypher", cypher)}
         ["cyber-investigation", "安全事件调查", ({ code, link }) => `
 <p><strong>问题</strong> 登录告警指向某个账号。该会话启动了哪些进程，事件时间窗口内这些进程连接了哪些端点？</p>
 <p>用登录日志映射 <code>Identity → Host</code>，用终端进程日志映射 <code>Host → Process</code>，用网络连接记录映射 <code>Process → NetworkEndpoint</code>。账号和主机使用包含租户的键，进程使用可区分 PID 重用的实例标识。每条边保留源事件 ID 和 UTC 毫秒时间戳，登录与进程启动边映射同一主机范围内的会话标识。</p>
-<p>发布模型后执行下方 Cypher 查询，在<strong>查询选项</strong>中填入告警的账号和时间窗口。</p>
+<p>发布模型后执行下方 Cypher 查询，在<strong>Cypher 参数</strong>中填入告警的账号和时间窗口。</p>
 ${code("Cypher", cyberInvestigation)}
 ${code("JSON", cyberParameters)}
 <p>在${link("query", "图视图")}打开返回路径，选择边取得源事件 ID，再回查原始日志，核对账号、进程和目标端点。</p>`],

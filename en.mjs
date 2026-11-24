@@ -46,6 +46,7 @@ export default {
       sections: [
         ["download", "1. Download and verify", ({ code, releasePage }) => `
 <p>Use a host with <code>sudo</code> access and glibc 2.36 or newer. The <a href="${releasePage}">${release} release</a> includes the CLI, the admin service, the built workbench, and systemd assets. Download the archive and checksum matching <code>uname -m</code>.</p>
+<p>Version 1.1.8 includes the redesigned model workspace, simplified publication for models without business validation, improved query correctness, bounded execution, and more resilient managed sync and cluster recovery. Both Linux architectures passed the release acceptance workflow.</p>
 ${packagesList("SHA-256 checksum")}
 <p>Or use the following commands in a download directory. Continue after the checksum reports <code>OK</code>. Keep the same shell for the installation steps.</p>
 ${code("Shell", download)}`],
@@ -95,7 +96,7 @@ ${code("Cypher", graphQuery)}
         ["configure", "Add a source in the workbench", ({ image }) => `
 <p>Sign in as an administrator. To follow the screenshots, prepare the <a href="#sqlite-demo">SQLite sample</a> before adding the connection.</p>
 <ol>
-  <li>Open <strong>Data Sources</strong> in the console and select the model you want to configure. Select <strong>Add data source</strong>, search for the connector, and choose <strong>Configure</strong> on its card. With an empty model library, select <strong>Choose a connector</strong> to start a new model draft from the connection. In an unsaved model, use <strong>Add data source</strong> in the modeling guide.</li>
+  <li>Open the model in <strong>Model library</strong>, then choose <strong>Data Sources</strong> in its workspace. Select <strong>Add data source</strong>, search for the connector, and choose <strong>Configure</strong> on its card. With an empty model library, select <strong>Choose a connector</strong> to start a new model draft from the connection. In an unsaved model, use <strong>Add data source</strong> in the modeling guide.</li>
   <li>Give the source a name unique within the model, without periods. Enter the connection settings or map file paths to table names. For the SQLite sample, use <code>ledger</code> as the name and <code>ledger.db</code> as the <strong>Database file path</strong>.</li>
   <li>Select <strong>Add to draft</strong>, then <strong>Save draft</strong>. If the configuration panel opens after adding the source, you can save inside that panel. To edit an existing connection, open <strong>Configure</strong> on its source card.</li>
 </ol>
@@ -131,10 +132,10 @@ ${code("YAML", postgresSource)}
       description: "Build an account transfer graph in the console. Connect two files, map nodes and directed edges on the canvas, then publish and verify the result.",
       sections: [
         ["ui-start", "1. Open a new model", ({ asset, link }) => `
-<p>Follow the ${link("install", "installation guide")} to start the console, then sign in as an administrator for this walkthrough. To work on an existing model, open its name in <strong>Graph Models</strong>. Access to editing and publishing depends on your ${link("access", "model permissions")}.</p>
+<p>Follow the ${link("install", "installation guide")} to start the console, then sign in as an administrator for this walkthrough. Open a model in <strong>Model library</strong>. Within a model, switch between <strong>Graph Models</strong>, <strong>Data Sources</strong>, and <strong>Query</strong>. The screenshots in this guide show an earlier console layout; follow the current labels in the instructions. Access to editing and publishing depends on your ${link("access", "model permissions")}.</p>
 <ol>
   <li>Download ${asset("examples/transfer/accounts.csv", "accounts.csv")} and ${asset("examples/transfer/transfers.jsonl", "transfers.jsonl")}. Put both files in the running server’s catalog directory, set by <code>--catalog-dir</code>. For a separate playground, use the catalog in ${link("first-model", "the first graph tutorial")}, which already contains the files.</li>
-  <li>In <strong>Graph Models</strong>, select <strong>New model</strong> (or <strong>Create a blank model</strong> if this is your first model). Enter <code>Transfer demo</code> for <strong>Name</strong> and <code>transfer-demo</code> for <strong>Model ID</strong>. Select <strong>Continue</strong>. The ID identifies the model in API calls and client connections.</li>
+  <li>In <strong>Model library</strong>, select <strong>New model</strong> (or <strong>Create a blank model</strong> if this is your first model). Enter <code>Transfer demo</code> for <strong>Name</strong> and <code>transfer-demo</code> for <strong>Model ID</strong>. Select <strong>Continue</strong>. The ID identifies the model in API calls and client connections.</li>
 </ol>
 <p>On the first-use screen, <strong>Explore the example</strong> lets you inspect who placed and paid for sample orders without creating a model. Choose <strong>Connect a data source</strong> to start with your own connection. You can also import an existing YAML model.</p>`],
         ["ui-sources", "2. Connect the two source files", () => `
@@ -162,8 +163,8 @@ ${code("YAML", postgresSource)}
         ["publish", "5. Save, validate, and publish", ({ code, link }) => `
 <ol>
   <li>Select <strong>Save draft</strong> to keep the mapping. In <strong>More tools</strong>, use <strong>Validate schema</strong> to check the mapping and <strong>Validate data</strong> to check the source rows. For example, check for duplicate keys or transfers whose endpoints have no matching account.</li>
-  <li>For the first publication, select <strong>Preview and publish</strong>, review the impact, and confirm publication. On an existing published model, select <strong>Save and publish</strong> or <strong>Publish draft</strong> for direct publication. The server still validates the model and applicable fixed business scenarios. A successful publication shows the active revision. If saving or publishing is unavailable, check the setup guide and confirm your ${link("access", "permissions")}.</li>
-  <li>Open <strong>Query</strong>, select <code>Transfer demo</code> and <strong>Cypher</strong>, then paste and run this query.</li>
+  <li>Select <strong>Save and publish</strong> or <strong>Publish draft</strong> when no business validation is required, including the first publication. If the model has business tasks, select <strong>Preview and publish</strong>, review the scenario findings, and confirm publication. The server checks the model and applicable business scenarios. A successful publication shows the active revision. If saving or publishing is unavailable, check the setup guide and confirm your ${link("access", "permissions")}.</li>
+  <li>Open <strong>Query</strong> in the <code>Transfer demo</code> workspace and select <strong>Cypher</strong>, then paste and run this query.</li>
 </ol>
 ${code("Cypher", directTransfers.replace("$account_id", "1"))}
 <p class="note"><strong>Expected result</strong> The table shows one row with Alice as the sender, Bob as the recipient, and 12.25 as the amount.</p>`],
@@ -173,7 +174,7 @@ ${code("Cypher", directTransfers.replace("$account_id", "1"))}
 ${code("YAML", mapping)}
 <p>Switch between <strong>Canvas</strong> and <strong>YAML</strong> in the model toolbar to inspect, edit, or download the same draft. The ${ref("examples/finance.yaml", "complete example")} includes the source definitions.</p>`],
         ["versions", "Manage model revisions", ({ ref }) => `
-<p>Queries use the active revision while you edit. Open <strong>Version history</strong> directly from the modeling toolbar. <strong>Release changes</strong> shows the selected server-confirmed operation relative to the preceding record, including added, modified, and removed types and a YAML diff. Use <strong>Compare with draft</strong> to include current edits. A publisher can preview a rollback to a previous mapping or take the model offline. Restoring source data requires a separate backup.</p>
+<p>Queries use the active revision while you edit. Open <strong>Version history</strong> directly from the modeling toolbar. <strong>Release changes</strong> shows the selected server-confirmed operation relative to the preceding record, including added, modified, and removed types and a YAML diff. Use <strong>Compare with draft</strong> to include current edits. A publisher can select a previous mapping and confirm rollback without discarding the working draft. If business validation is required, preview and confirm the rollback. A publisher can also take a model offline. Restoring source data requires a separate backup.</p>
 <p>For multi-table mappings, filters, and business-time rules, see the ${ref("docs/reference.zh-CN.md#多表图映射与业务时间", "model reference")}.</p>`],
       ],
     },
@@ -182,18 +183,18 @@ ${code("YAML", mapping)}
       description: "Run a parameterized query, switch between result views, and follow relationships one hop at a time in the console.",
       sections: [
         ["run", "Run against a published model", ({ code, link }) => `
-<p>Open <strong>Query</strong> and select a published model. For this walkthrough use <code>Transfer demo</code> from ${link("model", "the canvas modeling tutorial")}. The published <code>graph</code> model from ${link("first-model", "Build your first graph")} works with the same query.</p>
+<p>Open a published model in <strong>Model library</strong> and select <strong>Query</strong> in its workspace. For this walkthrough use <code>Transfer demo</code> from ${link("model", "the canvas modeling tutorial")}. The published <code>graph</code> model from ${link("first-model", "Build your first graph")} works with the same query.</p>
 <p>Choose <strong>Cypher</strong> next to <strong>Run query</strong> and paste this into <strong>Query statement</strong>. It returns the path <code>p</code> for the canvas, plus the sender, recipient, and amount for the table. See ${link("query-recipes", "query recipes")} for SQL and Gremlin examples.</p>
 ${code("Cypher", workbenchPath)}`],
         ["parameters", "Set Cypher parameters", ({ code, image }) => `
 <ol>
-  <li>Below the editor, open <strong>Query options → Cypher parameters (JSON)</strong>. Paste the JSON object below. Use the key <code>account_id</code> without the dollar sign. Enter <code>1</code> as a number because this sample uses an <code>Int64</code> account ID.</li>
+  <li>Below the editor, open <strong>Parameters</strong>. Paste the JSON object below. Use the key <code>account_id</code> without the dollar sign. Enter <code>1</code> as a number because this sample uses an <code>Int64</code> account ID.</li>
   <li>Select <strong>Run query</strong>. Open <strong>Table</strong> to check the single row. Alice sent Bob <code>12.25</code>.</li>
   <li>To reuse the statement, change the value to <code>2</code> and run it again. The row now shows Bob sending Carol <code>25.50</code>. Set the value back to <code>1</code> and run again before the neighbor walkthrough.</li>
 </ol>
 ${code("JSON", '{"account_id":1}')}
-<p>If the query reports a parameter error, check that you entered a JSON object with double-quoted keys and that each key matches the name after <code>$</code> in the statement. The parameter field appears when Cypher is selected. Leave <strong>Timeout (ms)</strong> empty to use the server default. See <a href="../troubleshoot/#query">Troubleshoot a query error</a> for other failure codes.</p>
-<figure>${image("query-parameters", "English Query workspace with account_id set to 1 and the Table tab showing Alice, Bob, and 12.25")}<figcaption>Enter the statement in the editor and its JSON parameters in <strong>Query options</strong>.</figcaption></figure>`],
+<p>If the query reports a parameter error, check that you entered a JSON object with double-quoted keys and that each key matches the name after <code>$</code> in the statement. The parameter field appears when Cypher is selected. Use <strong>Query scope</strong> for graph-wide predicates and snapshot time. Open <strong>Advanced</strong> to configure the timeout, capture of full results, freshness policy, or published CSR. Leave <strong>Timeout (ms)</strong> empty to use the server default. See <a href="../troubleshoot/#query">Troubleshoot a query error</a> for other failure codes.</p>
+<figure>${image("query-parameters", "English Query workspace with account_id set to 1 and the Table tab showing Alice, Bob, and 12.25")}<figcaption>Earlier console screenshot. In v1.1.8, open <strong>Parameters</strong> below the editor to enter the JSON object.</figcaption></figure>`],
         ["views", "Switch result views", () => `
 <p>Use the tabs above the results to inspect the query output or the published schema.</p>
 <p>On small screens, the model header provides direct links to the workspaces available to you. An automatically fitted result graph adapts to changes in window size. Manual pan and zoom are preserved until you choose <strong>Fit graph to view</strong> or <strong>Reset view</strong>.</p>
@@ -212,7 +213,7 @@ ${code("JSON", '{"account_id":1}')}
 <p>Each expansion adds one hop around the selected node. If more matches are available, select <strong>Load next page</strong> to add another batch for the same node. To follow another hop, select one of the newly added nodes and expand it. <strong>Table</strong> and <strong>Raw response</strong> read from the query execution. If the model revision changes, rerun the query before continuing.</p>
 <figure>${image("query-neighbors", "English Graph view showing Alice to Bob to Carol, with Bob selected and the Outgoing Transfer expansion controls visible")}<figcaption>Bob’s outgoing transfer adds Carol to the graph. The row count above the tabs refers to the query execution.</figcaption></figure>`],
         ["export", "Work with larger results", ({ link, ref }) => `
-<p>The workbench shows a bounded preview. Use cancellation for a query you no longer need. For complete results, enable full-result capture and download Arrow IPC with query and export permissions. Use filters, hop bounds, and resource limits to keep exploratory queries predictable.</p>
+<p>The workbench shows a bounded preview. Use cancellation for a query you no longer need. For complete results, enable <strong>Advanced → Keep full results</strong> before running and download Arrow IPC with query and export permissions. Use filters, hop bounds, and resource limits to keep exploratory queries predictable.</p>
 <p>Applications can use HTTP, Bolt, Gremlin WebSocket, the CLI, or embedded Rust. See the ${ref("docs/reference.zh-CN.md#查询语义与资源控制", "query and protocol reference")} and the ${ref("docs/reference.zh-CN.md#整图算法", "graph algorithms reference")} for shortest paths, PageRank, and community detection.</p>
 <p>For runnable shortest path, PageRank, and component examples, see ${link("algorithms", "Graph algorithms and CSR")}.</p>`],
       ],
@@ -254,7 +255,7 @@ ${code("Shell", syncDemoUpdate)}
         ["managed", "Use shared managed snapshots in HA", ({ code, link }) => `
 <p>In a ${link("cluster", "cluster with Coordinator failover")}, enable managed local tables in the shared cluster configuration. The Coordinators and Workers use the same etcd namespace and S3-compatible storage prefix. This lets Workers read managed snapshots from object storage.</p>
 ${code("YAML", "managed_local_tables: true\nlocal_snapshot_retention_seconds: 86400\nlocal_snapshot_gc_grace_seconds: 300")}
-<p>Create and load a new managed table, then switch the model to the <code>local-table://&lt;table UUID&gt;</code> reference and publish. Existing mappings can keep reading their file-backed copies during the transition. GraphLake reclaims eligible old generations and retains snapshots held by active queries or backups. Apply bucket lifecycle rules to incomplete uploads and noncurrent object versions. Keep live object retention under GraphLake's control.</p>`],
+<p>Create and load a new managed table, then switch the model to the <code>local-table://&lt;table UUID&gt;</code> reference and publish. Existing mappings can keep reading their file-backed copies during the transition. GraphLake reclaims eligible old generations and retains snapshots held by active queries or backups. Cancellation and timeouts keep a managed sync slot occupied until background work actually finishes. Apply bucket lifecycle rules to incomplete uploads and noncurrent object versions. Keep live object retention under GraphLake's control.</p>`],
       ],
     },
     mcp: {
@@ -313,7 +314,7 @@ ${code("Cypher", cypher)}
         ["cyber-investigation", "Cyber investigation", ({ code, link }) => `
 <p><strong>Question.</strong> A sign-in alert names an account. Which processes started in the matching session, and what endpoints did they contact during the incident window?</p>
 <p>Map sign-in logs to <code>Identity → Host</code>, endpoint process telemetry to <code>Host → Process</code>, and network events to <code>Process → NetworkEndpoint</code>. Use tenant-scoped identity and host keys, and a process instance ID that distinguishes reused PIDs. Keep the originating event ID and UTC epoch milliseconds on each edge. Map the same host-scoped session identifier on sign-ins and process starts.</p>
-<p>In the published model, run this Cypher query. Supply the alert's account and time window in <strong>Query options</strong>.</p>
+<p>In the published model, run this Cypher query. Supply the alert's account and time window in <strong>Parameters</strong>.</p>
 ${code("Cypher", cyberInvestigation)}
 ${code("JSON", cyberParameters)}
 <p>Open the returned paths in ${link("query", "the graph view")} and select an edge to find the source event ID. Verify the account, process, and destination in the original telemetry before recording a finding.</p>`],

@@ -1,4 +1,6 @@
 graph: text-files
+semantics:
+  description: Example accounts and recorded transfers from local files.
 sources:
   people:
     type: csv
@@ -27,3 +29,9 @@ edges:
     from: {node: Account, columns: [src]}
     to: {node: Account, columns: [dst]}
     properties: [amount]
+    semantics:
+      relation:
+        kind: observed_use
+        statement: A transfer was recorded from the source account to the destination account.
+      properties:
+        amount: { description: Recorded transfer amount, unit: USD }

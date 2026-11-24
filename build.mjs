@@ -1,6 +1,6 @@
 import { cp, mkdir, writeFile } from "node:fs/promises";
 import { posix } from "node:path";
-import { reference, repository, releasePage } from "./examples.mjs";
+import { reference, repository, release, releasePage } from "./examples.mjs";
 import en from "./en.mjs";
 import zh from "./zh.mjs";
 
@@ -230,7 +230,7 @@ ${article ? "" : `<link rel="stylesheet" href="${assets}home.css">`}
   </div>
 </header>
 ${article ? articlePage() : landingPage()}
-<footer class="site-footer"><div class="shell footer-row"><span>GraphLake</span><nav aria-label="${ui.footer}">${link("docs", ui.docs)} <a href="${releasePage}">${ui.release}</a> <a href="${repository}">GitHub</a></nav></div></footer>
+<footer class="site-footer"><div class="shell footer-row"><span>GraphLake</span><nav aria-label="${ui.footer}">${link("docs", ui.docs)} <a href="${releasePage}">${ui.release} · ${release}</a> <a href="${repository}">GitHub</a></nav></div></footer>
 </body>
 </html>
 `;

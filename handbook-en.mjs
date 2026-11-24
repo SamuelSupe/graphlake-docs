@@ -91,7 +91,7 @@ ${code("Shell", runSample)}
 ${code("Shell", sampleWorkbench)}
 <ol>
   <li>Open <a href="http://127.0.0.1:7347/">http://127.0.0.1:7347</a> and sign in as <code>admin</code>. If the service is on another machine, forward port <code>7347</code> over SSH.</li>
-  <li>In <strong>Graph Models</strong>, verify that <code>graph</code> is published. Open <strong>Query</strong>, paste the earlier Cypher, and supply <code>{"account_id":1}</code> in <strong>Query options</strong>.</li>
+  <li>In <strong>Graph Models</strong>, verify that <code>graph</code> is published. Open <strong>Query</strong>, paste the earlier Cypher, and supply <code>{"account_id":1}</code> in <strong>Parameters</strong>.</li>
 </ol>
 <p>Continue with ${link("model", "the canvas walkthrough")} to build the same mapping yourself, or ${link("sources", "connect your own data")}. Check key types and sample rows before you publish a mapping over production data.</p>`],
     ],
@@ -102,7 +102,7 @@ ${code("Shell", sampleWorkbench)}
     sections: [
       ["setup", "Prepare the example", ({ link }) => `
 <p>Use the CSV and JSON Lines sample from ${link("first-model", "Build your first graph")}. Run these snippets in the published model’s <strong>Query</strong> workspace. For CLI runs, choose the dialect with <code>--language</code> and set Cypher values with <code>--parameters</code>.</p>
-<p>For Cypher snippets that use <code>$account_id</code>, enter <code>{"account_id":1}</code> in <strong>Query options</strong>.</p>`],
+<p>For Cypher snippets that use <code>$account_id</code>, enter <code>{"account_id":1}</code> in <strong>Parameters</strong>.</p>`],
       ["paths", "Follow two transfers in Cypher", ({ code }) => `
 <p>Bind a starting account and return a named path. The graph view can draw the path and show the properties of each hop.</p>
 ${code("Cypher", followPath)}

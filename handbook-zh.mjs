@@ -91,7 +91,7 @@ ${code("Shell", runSample)}
 ${code("Shell", sampleWorkbench)}
 <ol>
   <li>打开 <a href="http://127.0.0.1:7347/">http://127.0.0.1:7347</a>，以 <code>admin</code> 登录。服务在远程主机时，通过 SSH 转发 <code>7347</code> 端口。</li>
-  <li>在<strong>图模型</strong>中确认 <code>graph</code> 已发布。打开<strong>查询</strong>，粘贴前面的 Cypher，在<strong>查询选项</strong>中填入 <code>{"account_id":1}</code>。</li>
+  <li>在<strong>图模型</strong>中确认 <code>graph</code> 已发布。打开<strong>查询</strong>，粘贴前面的 Cypher，在<strong>Cypher 参数</strong>中填入 <code>{"account_id":1}</code>。</li>
 </ol>
 <p>可以继续阅读${link("model", "画布建模教程")}，手动完成同一套映射，也可以${link("sources", "连接自己的数据")}。发布生产映射前，先核对业务键的类型和样例行。</p>`],
     ],
@@ -102,7 +102,7 @@ ${code("Shell", sampleWorkbench)}
     sections: [
       ["setup", "准备样例模型", ({ link }) => `
 <p>使用${link("first-model", "第一个图模型")}的 CSV 和 JSON Lines 文件，在发布模型的<strong>查询</strong>工作区运行示例。使用命令行时，通过 <code>--language</code> 选择语言，通过 <code>--parameters</code> 提供 Cypher 参数。</p>
-<p>遇到 <code>$account_id</code> 时，在<strong>查询选项</strong>填入 <code>{"account_id":1}</code>。</p>`],
+<p>遇到 <code>$account_id</code> 时，在<strong>Cypher 参数</strong>填入 <code>{"account_id":1}</code>。</p>`],
       ["paths", "用 Cypher 查两跳路径", ({ code }) => `
 <p>指定起始账户，返回一个命名路径。在图视图中可以展开路径并查看每一条边的属性。</p>
 ${code("Cypher", followPath)}

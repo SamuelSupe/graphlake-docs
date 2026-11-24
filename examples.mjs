@@ -1,6 +1,6 @@
 export const repository = "https://github.com/SamuelSupe/graphlake";
-export const release = "v1.1.6";
-export const sourceDigestPrefix = "9d321ad6e7a9";
+export const release = "v1.1.8";
+export const sourceDigestPrefix = "a274ab05e737";
 export const reference = `${repository}/blob/${release}`;
 export const releasePage = `${repository}/releases/tag/${release}`;
 const artifact = `graphlake-${release}-${sourceDigestPrefix}-linux`;
